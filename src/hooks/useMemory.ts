@@ -10,9 +10,15 @@ export const useMemory = () => {
     }
   }, []);
 
-  const setSettings = useCallback((settings: GameSettings["settings"]) => {
-    localStorage.setItem("battleship-settings", JSON.stringify(settings));
-  }, []);
+  const setSettings = useCallback(
+    (settings: null | GameSettings["settings"]) => {
+      localStorage.setItem(
+        "battleship-settings",
+        settings ? JSON.stringify(settings) : ""
+      );
+    },
+    []
+  );
 
   return {
     setSettings,

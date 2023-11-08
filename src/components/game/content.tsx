@@ -5,6 +5,11 @@ import { useGameContext } from "../../hooks/useGameContex";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { Header } from "../header";
+import { ShipTray } from "./parts/ship-tray";
+import { Layout } from "../layout";
+import { ResetGameButton } from "../controls/reset-game-button";
+import { Draggable } from "./parts/draggable";
+import { ShipType } from "../../enums/ShipType";
 
 export const GameContent = () => {
   const { getSettings } = useMemory();
@@ -42,10 +47,14 @@ export const GameContent = () => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="game-content">
-        <Header>{components.header.content}</Header>
-        <Board />
-      </div>
+      <Layout menuBarContent={<ResetGameButton />}>
+        <div className="game-content">
+          <Header>{components.header.content}</Header>
+          <Draggable shipType={ShipType.BATTLESHIP} />
+          <Board />
+          <ShipTray />
+        </div>
+      </Layout>
     </DndProvider>
   );
 };

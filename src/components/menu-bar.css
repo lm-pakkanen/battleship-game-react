@@ -1,0 +1,6 @@
+.menu-bar {
+  display: flex;
+  height: 60px;
+  width: 100%;
+  background: hsla(0, 0%, 15%, 1);
+}

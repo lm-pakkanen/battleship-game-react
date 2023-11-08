@@ -1,18 +1,18 @@
 import { ShipType } from "../enums/ShipType";
 
-interface ShipCounts {
-  carrier: number;
-  battleship: number;
-  cruiser: number;
-  submarine: number;
-  destroyer: number;
-}
-
 interface Settings {
   player1Name: string;
   player2Name: string;
   boardSize: number;
   shipCounts: ShipCounts;
+}
+
+export interface ShipCounts {
+  carrier: number;
+  battleship: number;
+  cruiser: number;
+  submarine: number;
+  destroyer: number;
 }
 
 export const BOARD_SIZE_MIN = 5;

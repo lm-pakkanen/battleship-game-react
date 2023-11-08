@@ -35,7 +35,7 @@ export interface GameContext {
   };
 }
 
-const initialGameContext: GameContext = {
+export const initialGameContext: GameContext = {
   stage: "settings",
   settings: {
     player1Name: "",
