@@ -1,0 +1,11 @@
+.board {
+  display: flex;
+  flex-direction: column;
+  margin: 3.5rem auto auto auto;
+  gap: 1px;
+  background: hsla(0, 0%, 75%, 1);
+}
+
+.tile-row {
+  display: flex;
+}

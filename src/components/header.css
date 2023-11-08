@@ -1,0 +1,10 @@
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem 0;
+  margin: auto auto 0 auto;
+}
+
+.header > * {
+  margin: 0 auto;
+}
