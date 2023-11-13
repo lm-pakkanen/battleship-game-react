@@ -10,10 +10,13 @@ import { Layout } from "../layout";
 import { ResetGameButton } from "../controls/reset-game-button";
 import { Draggable } from "./parts/draggable";
 import { ShipType } from "../../enums/ShipType";
+import { ResetPlacementsButton } from "../controls/reset-placements-button";
+import { BlockPanel } from "./parts/block-panel";
+import { transformName } from "../../functions/transform-name";
 
 export const GameContent = () => {
   const { getSettings } = useMemory();
-  const { components, functions } = useGameContext();
+  const { stage, turn, components, functions } = useGameContext();
 
   const [isReady, setIsReady] = useState(false);
 
@@ -30,16 +33,27 @@ export const GameContent = () => {
     functions.setTurn("player1");
 
     setIsReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (stage === "settings" || !turn) {
+      return;
+    }
+
+    const textContent =
+      stage === "placingShips" ? "Place your ships!" : "Sink the enemy!";
 
     components.header.setContent(
       <>
         <span className="text-header1 text-bold color-primary">
-          Place your ships!
+          {textContent}
         </span>
-        <span className="text-header2 text-bold color-primary">Player1</span>
+        <span className="text-header2 text-bold color-primary">
+          {transformName(turn)}
+        </span>
       </>
     );
-  }, []);
+  }, [stage, turn]);
 
   if (!isReady) {
     return "loading...";
@@ -47,7 +61,18 @@ export const GameContent = () => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <Layout menuBarContent={<ResetGameButton />}>
+      <Layout
+        menuBarContent={
+          <>
+            <ResetGameButton />
+            <ResetPlacementsButton />
+          </>
+        }
+      >
+        {components.blockPanel.isVisible &&
+          components.blockPanel.props.children && (
+            <BlockPanel {...components.blockPanel.props} />
+          )}
         <div className="game-content">
           <Header>{components.header.content}</Header>
           <Draggable shipType={ShipType.BATTLESHIP} />

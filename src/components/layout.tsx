@@ -10,7 +10,7 @@ export const Layout = ({ children, menuBarContent }: Layout) => {
   return (
     <div className="layout">
       <MenuBar>{menuBarContent}</MenuBar>
-      {children}
+      <div className="layout-content">{children}</div>
     </div>
   );
 };

@@ -2,6 +2,7 @@ import { createContext, useState } from "react";
 import { GameSettings, SHIP_SIZES } from "../constructors/GameSettings";
 import { ShipType } from "../enums/ShipType";
 import { ShipOrientation } from "../enums/ShipOrientation";
+import { BlockPanel } from "../components/game/parts/block-panel";
 
 interface PlayerState {
   hitCells: string[];
@@ -22,11 +23,19 @@ export interface GameContext {
       content: React.ReactNode;
       setContent: React.Dispatch<React.SetStateAction<React.ReactNode>>;
     };
+    blockPanel: {
+      props: BlockPanel;
+      isVisible: boolean;
+      setProps: React.Dispatch<React.SetStateAction<BlockPanel>>;
+      setIsVisible: React.Dispatch<React.SetStateAction<boolean>>;
+    };
   };
   functions: {
     setStage: React.Dispatch<React.SetStateAction<GameContext["stage"]>>;
     setSettings: React.Dispatch<React.SetStateAction<GameContext["settings"]>>;
     setTurn: React.Dispatch<React.SetStateAction<GameContext["turn"]>>;
+    setPlayer1: React.Dispatch<React.SetStateAction<GameContext["player1"]>>;
+    setPlayer2: React.Dispatch<React.SetStateAction<GameContext["player2"]>>;
     placeShip: (
       coordinate: string,
       shipType: ShipType,
@@ -63,11 +72,23 @@ export const initialGameContext: GameContext = {
       content: "",
       setContent: () => undefined,
     },
+    blockPanel: {
+      props: {
+        timer: null,
+        children: null,
+        onTimerEnd: () => undefined,
+      },
+      isVisible: false,
+      setProps: () => undefined,
+      setIsVisible: () => undefined,
+    },
   },
   functions: {
     setStage: () => undefined,
     setSettings: () => undefined,
     setTurn: () => undefined,
+    setPlayer1: () => undefined,
+    setPlayer2: () => undefined,
     placeShip: () => undefined,
   },
 };
@@ -85,8 +106,17 @@ export const GameContextProvider = ({
   const [player1, setPlayer1] = useState(initialGameContext.player1);
   const [player2, setPlayer2] = useState(initialGameContext.player2);
   const [turn, setTurn] = useState(initialGameContext.turn);
+
   const [headerContent, setHeaderContent] = useState(
     initialGameContext.components.header.content
+  );
+
+  const [blockPanelProps, setBlockPanelProps] = useState(
+    initialGameContext.components.blockPanel.props
+  );
+
+  const [isBlockPanelVisible, setIsBlockPanelVisible] = useState(
+    initialGameContext.components.blockPanel.isVisible
   );
 
   const placeShip: GameContext["functions"]["placeShip"] = (
@@ -190,6 +220,12 @@ export const GameContextProvider = ({
       throw new Error("Space is already occupied by another ship!");
     }
 
+    const currentShipCount = playerState.shipLocations.length;
+
+    const maxShipCount = Object.values(settings.shipCounts).reduce(
+      (a, b) => a + b
+    );
+
     setPlayerState((oldState) => ({
       ...oldState,
       shipLocations: [
@@ -197,9 +233,26 @@ export const GameContextProvider = ({
         { shipType, coordinates: nextCoordinates },
       ],
     }));
-  };
 
-  console.log(player1.shipLocations);
+    if (currentShipCount + 1 === maxShipCount) {
+      const onTimerEnd = () => {
+        if (turn === "player1") {
+          setTurn("player2");
+        } else {
+          setStage("playing");
+          setTurn("player1");
+        }
+      };
+
+      setBlockPanelProps({
+        timer: 5000,
+        children: "test",
+        onTimerEnd,
+      });
+
+      setIsBlockPanelVisible(true);
+    }
+  };
 
   const providerValue: GameContext = {
     stage,
@@ -212,11 +265,19 @@ export const GameContextProvider = ({
         content: headerContent,
         setContent: setHeaderContent,
       },
+      blockPanel: {
+        props: blockPanelProps,
+        isVisible: isBlockPanelVisible,
+        setProps: setBlockPanelProps,
+        setIsVisible: setIsBlockPanelVisible,
+      },
     },
     functions: {
       setStage,
       setSettings,
       setTurn,
+      setPlayer1,
+      setPlayer2,
       placeShip,
     },
   };

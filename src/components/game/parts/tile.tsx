@@ -41,6 +41,7 @@ export const Tile = ({ coordinate, handleClick: _handleClick }: Tile) => {
       );
 
       if (!shipLocation) {
+        setChildren(null);
         return;
       }
 
@@ -67,7 +68,7 @@ export const Tile = ({ coordinate, handleClick: _handleClick }: Tile) => {
       } else if (isHit) {
         setChildren("O");
       } else {
-        setChildren(coordinate);
+        setChildren(null);
       }
     }
   }, [
