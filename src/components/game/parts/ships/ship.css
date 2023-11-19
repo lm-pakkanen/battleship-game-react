@@ -1,0 +1,25 @@
+.ship {
+  position: absolute;
+  width: 60px;
+  border-radius: 3rem 3rem 2rem 2rem;
+}
+
+.ship.tray-ship {
+  transform: translateY(-57px);
+}
+
+.ship-vertical.dragging {
+  transform: rotate(0deg) translateX(0px) translateY(0px);
+}
+
+.ship-vertical:not(.tray-ship, .dragging) {
+  transform: rotate(0deg) translateX(-5px) translateY(-203px);
+}
+
+.ship-horizontal.dragging {
+  transform: rotate(-90deg) translateX(-100px) translateY(-100px);
+}
+
+.ship-horizontal:not(.tray-ship, .dragging) {
+  transform: rotate(-90deg) translateX(96px) translateY(-110px);
+}

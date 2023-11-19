@@ -1,10 +1,12 @@
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import { GameSettings, SHIP_SIZES } from "../constructors/GameSettings";
 import { ShipType } from "../enums/ShipType";
 import { ShipOrientation } from "../enums/ShipOrientation";
 import { BlockPanel } from "../components/game/parts/block-panel";
+import { useMemory } from "../hooks/useMemory";
+import { ShipLocation } from "../components/game/parts/ships/ship";
 
-interface PlayerState {
+export interface PlayerState {
   hitCells: string[];
   shipLocations: {
     shipType: ShipType;
@@ -18,6 +20,17 @@ export interface GameContext {
   player1: PlayerState;
   player2: PlayerState;
   turn: null | "player1" | "player2";
+  tileBounds: Record<
+    string,
+    {
+      id: string;
+      xBounds: [number, number];
+      yBounds: [number, number];
+    }
+  >;
+  setTileBounds: React.Dispatch<
+    React.SetStateAction<GameContext["tileBounds"]>
+  >;
   components: {
     header: {
       content: React.ReactNode;
@@ -37,10 +50,11 @@ export interface GameContext {
     setPlayer1: React.Dispatch<React.SetStateAction<GameContext["player1"]>>;
     setPlayer2: React.Dispatch<React.SetStateAction<GameContext["player2"]>>;
     placeShip: (
-      coordinate: string,
+      coordinate: undefined | string,
       shipType: ShipType,
       shipOrientation: ShipOrientation
-    ) => void;
+    ) => boolean;
+    getIntersectingTileId: (location: ShipLocation) => undefined | string;
   };
 }
 
@@ -67,9 +81,11 @@ export const initialGameContext: GameContext = {
     shipLocations: [],
   },
   turn: null,
+  tileBounds: {},
+  setTileBounds: () => undefined,
   components: {
     header: {
-      content: "",
+      content: null,
       setContent: () => undefined,
     },
     blockPanel: {
@@ -89,7 +105,8 @@ export const initialGameContext: GameContext = {
     setTurn: () => undefined,
     setPlayer1: () => undefined,
     setPlayer2: () => undefined,
-    placeShip: () => undefined,
+    placeShip: () => false,
+    getIntersectingTileId: () => undefined,
   },
 };
 
@@ -100,12 +117,18 @@ export const GameContextProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [stage, setStage] = useState(initialGameContext.stage);
+  const { getContext, setContext } = useMemory();
 
-  const [settings, setSettings] = useState(initialGameContext.settings);
-  const [player1, setPlayer1] = useState(initialGameContext.player1);
-  const [player2, setPlayer2] = useState(initialGameContext.player2);
-  const [turn, setTurn] = useState(initialGameContext.turn);
+  const savedContext = getContext();
+
+  const [stage, setStage] = useState(savedContext.stage);
+
+  const [settings, setSettings] = useState(savedContext.settings);
+  const [player1, setPlayer1] = useState(savedContext.player1);
+  const [player2, setPlayer2] = useState(savedContext.player2);
+  const [turn, setTurn] = useState(savedContext.turn);
+
+  const [tileBounds, setTileBounds] = useState(initialGameContext.tileBounds);
 
   const [headerContent, setHeaderContent] = useState(
     initialGameContext.components.header.content
@@ -119,11 +142,35 @@ export const GameContextProvider = ({
     initialGameContext.components.blockPanel.isVisible
   );
 
+  const getIntersectingTileId: GameContext["functions"]["getIntersectingTileId"] =
+    (location) => {
+      const intersectingTile = Object.values(tileBounds).find((n) => {
+        const orderedXBounds = n.xBounds.sort((a, b) => a - b);
+        const orderedYBounds = n.yBounds.sort((a, b) => a - b);
+
+        const [xMin, xMax] = orderedXBounds;
+        const [yMin, yMax] = orderedYBounds;
+
+        return (
+          location.left > xMin &&
+          location.left < xMax &&
+          location.top > yMin &&
+          location.top < yMax
+        );
+      });
+
+      return intersectingTile?.id;
+    };
+
   const placeShip: GameContext["functions"]["placeShip"] = (
     coordinate,
     shipType,
     shipOrientation
   ) => {
+    if (!coordinate) {
+      return false;
+    }
+
     if (!turn) {
       throw new Error("Placing ships not yet started!");
     }
@@ -234,7 +281,7 @@ export const GameContextProvider = ({
       ],
     }));
 
-    if (currentShipCount + 1 === maxShipCount) {
+    /*if (currentShipCount + 1 === maxShipCount) {
       const onTimerEnd = () => {
         if (turn === "player1") {
           setTurn("player2");
@@ -251,7 +298,9 @@ export const GameContextProvider = ({
       });
 
       setIsBlockPanelVisible(true);
-    }
+    }*/
+
+    return true;
   };
 
   const providerValue: GameContext = {
@@ -260,6 +309,8 @@ export const GameContextProvider = ({
     player1,
     player2,
     turn,
+    tileBounds,
+    setTileBounds,
     components: {
       header: {
         content: headerContent,
@@ -279,8 +330,23 @@ export const GameContextProvider = ({
       setPlayer1,
       setPlayer2,
       placeShip,
+      getIntersectingTileId,
     },
   };
+
+  useEffect(() => {
+    setContext({
+      stage: providerValue.stage,
+      turn: providerValue.turn,
+      player1: providerValue.player1,
+      player2: providerValue.player2,
+    });
+  }, [
+    providerValue.stage,
+    providerValue.turn,
+    providerValue.player1,
+    providerValue.player2,
+  ]);
 
   return (
     <GameContext.Provider value={providerValue}>

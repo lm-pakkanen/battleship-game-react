@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useGameContext } from "../../../hooks/useGameContex";
-import { ShipCounts } from "../../../constructors/GameSettings";
 import { ShipType } from "../../../enums/ShipType";
+import { Ship } from "./ships/ship";
+import "./ship-tray.css";
+import { ShipOrientation } from "../../../enums/ShipOrientation";
 
 export const ShipTray = () => {
   const { settings, turn, stage, player1, player2 } = useGameContext();
 
-  const [shipCounts, setShipCounts] = useState<null | ShipCounts>(null);
+  const [ships, setShips] = useState<{ type: ShipType }[]>([]);
 
   useEffect(() => {
     const playerState = turn === "player1" ? player1 : player2;
@@ -26,7 +28,18 @@ export const ShipTray = () => {
       //
     }
 
-    setShipCounts(nextShipCounts);
+    const _ships: typeof ships = [];
+
+    for (const [shipType, shipCount] of Object.entries(nextShipCounts).sort(
+      ([shipType1], [shipType2]) =>
+        shipType1 < shipType2 ? -1 : shipType1 > shipType2 ? 1 : 0
+    )) {
+      for (let i = 0; i < shipCount; i++) {
+        _ships.push({ type: shipType as ShipType });
+      }
+    }
+
+    setShips(_ships);
   }, [
     turn,
     stage,
@@ -36,9 +49,27 @@ export const ShipTray = () => {
     player2.hitCells,
   ]);
 
-  if (!shipCounts) {
+  if (!ships) {
     return null;
   }
 
-  return <article>{JSON.stringify(shipCounts)}</article>;
+  return (
+    <div className="ship-tray-wrapper">
+      <article className="ship-tray">
+        {ships.map(({ type }, index) => (
+          <section
+            key={`${type}-tray-ship-${index}`}
+            className="ship-tray-section"
+          >
+            <Ship
+              type={type}
+              destroyed={false}
+              isTray={true}
+              initialOrientation={ShipOrientation.BOTTOM_TO_TOP}
+            />
+          </section>
+        ))}
+      </article>
+    </div>
+  );
 };

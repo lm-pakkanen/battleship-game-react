@@ -7,8 +7,14 @@ export const ResetGameButton = () => {
   const memory = useMemory();
 
   const handleReset = () => {
-    functions.setSettings(initialGameContext.settings);
+    memory.setContext(null);
     memory.setSettings(null);
+
+    functions.setStage(initialGameContext.stage);
+    functions.setTurn(initialGameContext.turn);
+    functions.setPlayer1(initialGameContext.player1);
+    functions.setPlayer2(initialGameContext.player2);
+    functions.setSettings(initialGameContext.settings);
 
     window.location.href = "/";
   };

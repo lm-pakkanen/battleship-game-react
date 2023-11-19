@@ -1,0 +1,21 @@
+.ship-tray-wrapper {
+  display: flex;
+  width: 100%;
+  padding: 2rem 0;
+  min-height: calc(260px + 2rem);
+}
+
+.ship-tray {
+  display: flex;
+  margin: 0 auto;
+  gap: 5rem;
+}
+
+.ship-tray-section {
+  width: 60px;
+  height: 260px;
+}
+
+.ship-tray-section-count {
+  margin-top: 5rem;
+}

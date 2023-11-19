@@ -1,92 +1,128 @@
-import { useDrop } from "react-dnd";
-import "./tile.css";
 import { useGameContext } from "../../../hooks/useGameContex";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Ship } from "./ships/ship";
-import { ShipOrientation } from "../../../enums/ShipOrientation";
+import { isLastShipCell } from "../../../functions/is-first-ship-cell";
+import React from "react";
+import "./tile.css";
+import { getShipOrientation } from "../../../functions/get-ship-orientation";
 
 export interface Tile {
   coordinate: string;
   handleClick: (coordinate: string) => void;
 }
 
-export const Tile = ({ coordinate, handleClick: _handleClick }: Tile) => {
-  const { turn, stage, player1, player2 } = useGameContext();
+export const Tile = React.forwardRef<HTMLDivElement, Tile>(
+  ({ coordinate, handleClick: _handleClick }: Tile, externalRef) => {
+    const { turn, stage, player1, player2, setTileBounds } = useGameContext();
 
-  const [children, setChildren] = useState<React.ReactNode>(null);
+    const [children, setChildren] = useState<React.ReactNode>(null);
 
-  const [, drop] = useDrop(() => ({
-    accept: "ship",
-    drop: () => ({ coordinate }),
-    collect: (monitor) => ({
-      isOver: monitor.isOver(),
-      canDrop: monitor.canDrop(),
-    }),
-  }));
+    const internalRef = useRef<HTMLDivElement>(null);
 
-  const handleClick: React.MouseEventHandler<HTMLDivElement> = () => {
-    _handleClick(coordinate);
-  };
+    const ref =
+      externalRef && typeof externalRef !== "function"
+        ? externalRef
+        : internalRef;
 
-  useEffect(() => {
-    if (stage === "settings" || !turn) {
-      return;
-    }
+    const handleClick: React.MouseEventHandler<HTMLDivElement> = () => {
+      _handleClick(coordinate);
+    };
 
-    const playerState = turn === "player1" ? player1 : player2;
-
-    if (stage === "placingShips") {
-      const shipLocation = playerState.shipLocations.find(
-        (n) => n.coordinates[n.coordinates.length - 1] === coordinate
-      );
-
-      if (!shipLocation) {
-        setChildren(null);
+    useEffect(() => {
+      if (stage === "settings" || !turn) {
         return;
       }
 
-      const firstCoordinate = shipLocation.coordinates[0];
+      const playerState = turn === "player1" ? player1 : player2;
+      const oppositePlayerState = turn === "player1" ? player2 : player1;
 
-      const orientation = shipLocation.coordinates.every(
-        (n) => n[1] === firstCoordinate[1]
-      )
-        ? ShipOrientation.BOTTOM_TO_TOP
-        : ShipOrientation.RIGHT_TO_LEFT;
+      if (stage === "placingShips") {
+        const shipLocation = playerState.shipLocations.find(
+          (n) => n.coordinates[n.coordinates.length - 1] === coordinate
+        );
 
-      setChildren(
-        <Ship type={shipLocation.shipType} orientation={orientation} />
-      );
-    } else if (stage === "playing") {
-      const isHit = playerState.hitCells.includes(coordinate);
+        if (!shipLocation) {
+          setChildren(null);
+          return;
+        }
 
-      const hasHitShip = playerState.shipLocations.some((n) =>
-        n.coordinates.includes(coordinate)
-      );
+        setChildren(
+          <Ship
+            type={shipLocation.shipType}
+            destroyed={false}
+            isTray={false}
+            initialOrientation={getShipOrientation(shipLocation)}
+          />
+        );
+      } else if (stage === "playing") {
+        const isHit = oppositePlayerState.hitCells.includes(coordinate);
 
-      if (isHit && hasHitShip) {
-        setChildren("X");
-      } else if (isHit) {
-        setChildren("O");
-      } else {
-        setChildren(null);
+        const tileShip = oppositePlayerState.shipLocations.find((n) =>
+          n.coordinates.includes(coordinate)
+        );
+
+        const hasHitShip = !!tileShip;
+
+        const isShipDestroyed =
+          hasHitShip &&
+          tileShip.coordinates.every((n) =>
+            oppositePlayerState.hitCells.includes(n)
+          );
+
+        if (
+          hasHitShip &&
+          isShipDestroyed &&
+          isLastShipCell(coordinate, tileShip)
+        ) {
+          setChildren(
+            <Ship type={tileShip.shipType} destroyed={true} isTray={false} />
+          );
+
+          return;
+        }
+
+        if (isHit && hasHitShip && !isShipDestroyed) {
+          setChildren("X");
+        } else if (isHit && !isShipDestroyed) {
+          setChildren("O");
+        } else {
+          setChildren(null);
+        }
       }
+    }, [
+      turn,
+      stage,
+      player1.shipLocations,
+      player1.hitCells,
+      player2.shipLocations,
+      player2.hitCells,
+    ]);
+
+    useEffect(() => {
+      if (!ref.current) {
+        return;
+      }
+
+      const rect = ref.current.getBoundingClientRect();
+
+      setTileBounds((oldBounds) => ({
+        ...oldBounds,
+        [coordinate]: {
+          id: coordinate,
+          xBounds: [rect.left, rect.right],
+          yBounds: [rect.top, rect.bottom],
+        },
+      }));
+    }, [ref.current]);
+
+    if (stage === "settings" || !turn) {
+      return null;
     }
-  }, [
-    turn,
-    stage,
-    player1.shipLocations,
-    player1.hitCells,
-    player2.shipLocations,
-    player2.hitCells,
-  ]);
 
-  if (stage === "settings" || !turn) {
-    return null;
+    return (
+      <div className="tile" onClick={handleClick} ref={ref}>
+        {children || coordinate}
+      </div>
+    );
   }
-
-  return (
-    <div className="tile" onClick={handleClick} ref={drop}>
-      {children || coordinate}
-    </div>
-  );
-};
+);
