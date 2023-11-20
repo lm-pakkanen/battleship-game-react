@@ -5,6 +5,7 @@ import {
   BOARD_SIZE_MIN,
   GameSettings,
   SHIP_COUNTS_MAX,
+  SHIP_SIZES,
 } from "../../constructors/GameSettings";
 import { Layout } from "../layout";
 import { ErrorMessage } from "./parts/error-message";
@@ -13,6 +14,7 @@ import { ShipType } from "../../enums/ShipType";
 import { InputLabel } from "./parts/input-label";
 import { SaveSettingsButton } from "../controls/save-settings-button";
 import { FlexLabel } from "./parts/flex-label";
+import { ShipCountLabel } from "./parts/ship-count-label";
 
 export const HomeContent = () => {
   const { setSettings } = useMemory();
@@ -29,8 +31,8 @@ export const HomeContent = () => {
   >({
     carrier: 1,
     battleship: 2,
-    cruiser: 2,
-    submarine: 2,
+    cruiser: 1,
+    submarine: 1,
     destroyer: 2,
   });
 
@@ -194,69 +196,75 @@ export const HomeContent = () => {
           <ErrorMessage msg={boardSizeError} isInputError={true} />
 
           <section className="ship-counts-container">
-            <FlexLabel>
-              <InputLabel label="Destroyer ship count" />
-              <ShipCountSelector
-                shipType={ShipType.DESTROYER}
-                maxCount={SHIP_COUNTS_MAX.destroyer}
-                selectedCount={shipCounts.destroyer}
-                setSelectedCount={(count) =>
-                  handleShipCountChange(count, ShipType.DESTROYER, "Destroyer")
-                }
-              />
-            </FlexLabel>
+            <ShipCountLabel
+              label="Destroyer ship count"
+              count={SHIP_SIZES.destroyer}
+            />
 
-            <FlexLabel>
-              <InputLabel label="Submarine ship count" />
-              <ShipCountSelector
-                shipType={ShipType.SUBMARINE}
-                maxCount={SHIP_COUNTS_MAX.submarine}
-                selectedCount={shipCounts.submarine}
-                setSelectedCount={(count) =>
-                  handleShipCountChange(count, ShipType.SUBMARINE, "Submarine")
-                }
-              />
-            </FlexLabel>
+            <ShipCountSelector
+              shipType={ShipType.DESTROYER}
+              maxCount={SHIP_COUNTS_MAX.destroyer}
+              selectedCount={shipCounts.destroyer}
+              setSelectedCount={(count) =>
+                handleShipCountChange(count, ShipType.DESTROYER, "Destroyer")
+              }
+            />
 
-            <FlexLabel>
-              <InputLabel label="Cruiser ship count" />
-              <ShipCountSelector
-                shipType={ShipType.CRUISER}
-                maxCount={SHIP_COUNTS_MAX.cruiser}
-                selectedCount={shipCounts.cruiser}
-                setSelectedCount={(count) =>
-                  handleShipCountChange(count, ShipType.CRUISER, "Cruiser")
-                }
-              />
-            </FlexLabel>
+            <ShipCountLabel
+              label={"Submarine ship count"}
+              count={SHIP_SIZES.submarine}
+            />
 
-            <FlexLabel>
-              <InputLabel label="Battleship count" />
-              <ShipCountSelector
-                shipType={ShipType.BATTLESHIP}
-                maxCount={SHIP_COUNTS_MAX.battleship}
-                selectedCount={shipCounts.battleship}
-                setSelectedCount={(count) =>
-                  handleShipCountChange(
-                    count,
-                    ShipType.BATTLESHIP,
-                    "Battleship"
-                  )
-                }
-              />
-            </FlexLabel>
+            <ShipCountSelector
+              shipType={ShipType.SUBMARINE}
+              maxCount={SHIP_COUNTS_MAX.submarine}
+              selectedCount={shipCounts.submarine}
+              setSelectedCount={(count) =>
+                handleShipCountChange(count, ShipType.SUBMARINE, "Submarine")
+              }
+            />
 
-            <FlexLabel>
-              <InputLabel label="Carrier ship count" />
-              <ShipCountSelector
-                shipType={ShipType.CARRIER}
-                maxCount={SHIP_COUNTS_MAX.carrier}
-                selectedCount={shipCounts.carrier}
-                setSelectedCount={(count) =>
-                  handleShipCountChange(count, ShipType.CARRIER, "Carrier")
-                }
-              />
-            </FlexLabel>
+            <ShipCountLabel
+              label="Cruiser ship count"
+              count={SHIP_SIZES.cruiser}
+            />
+
+            <ShipCountSelector
+              shipType={ShipType.CRUISER}
+              maxCount={SHIP_COUNTS_MAX.cruiser}
+              selectedCount={shipCounts.cruiser}
+              setSelectedCount={(count) =>
+                handleShipCountChange(count, ShipType.CRUISER, "Cruiser")
+              }
+            />
+
+            <ShipCountLabel
+              label="Battleship count"
+              count={SHIP_SIZES.battleship}
+            />
+
+            <ShipCountSelector
+              shipType={ShipType.BATTLESHIP}
+              maxCount={SHIP_COUNTS_MAX.battleship}
+              selectedCount={shipCounts.battleship}
+              setSelectedCount={(count) =>
+                handleShipCountChange(count, ShipType.BATTLESHIP, "Battleship")
+              }
+            />
+
+            <ShipCountLabel
+              label="Carrier ship count"
+              count={SHIP_SIZES.carrier}
+            />
+
+            <ShipCountSelector
+              shipType={ShipType.CARRIER}
+              maxCount={SHIP_COUNTS_MAX.carrier}
+              selectedCount={shipCounts.carrier}
+              setSelectedCount={(count) =>
+                handleShipCountChange(count, ShipType.CARRIER, "Carrier")
+              }
+            />
           </section>
           <ErrorMessage msg={shipsCountError} />
         </section>

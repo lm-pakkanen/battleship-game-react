@@ -27,16 +27,14 @@ export const ShipCountSelector = ({
         event.preventDefault();
       }}
     >
-      {[...Array(maxCount).keys()]
-        .map((n) => n + 1)
-        .map((n) => (
-          <InputBox
-            key={`${shipType}-selector-${n}`}
-            num={n}
-            isSelected={selectedCount === n}
-            handleClick={handleInputBoxClick}
-          />
-        ))}
+      {[...Array(maxCount + 1).keys()].map((n) => (
+        <InputBox
+          key={`${shipType}-selector-${n}`}
+          num={n}
+          isSelected={selectedCount === n}
+          handleClick={handleInputBoxClick}
+        />
+      ))}
     </section>
   );
 };
