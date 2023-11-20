@@ -12,6 +12,7 @@ import { ShipCountSelector } from "./parts/ship-count-selector";
 import { ShipType } from "../../enums/ShipType";
 import { InputLabel } from "./parts/input-label";
 import { SaveSettingsButton } from "../controls/save-settings-button";
+import { FlexLabel } from "./parts/flex-label";
 
 export const HomeContent = () => {
   const { setSettings } = useMemory();
@@ -19,7 +20,7 @@ export const HomeContent = () => {
   const [player1Name, setPlayer1Name] = useState("");
   const [player2Name, setPlayer2Name] = useState("");
 
-  const [boardSize, setBoardSize] = useState(
+  const [boardSize, setBoardSize] = useState<"" | number>(
     Math.floor((BOARD_SIZE_MIN + BOARD_SIZE_MAX) / 2)
   );
 
@@ -29,8 +30,8 @@ export const HomeContent = () => {
     carrier: 1,
     battleship: 2,
     cruiser: 2,
-    submarine: 3,
-    destroyer: 3,
+    submarine: 2,
+    destroyer: 2,
   });
 
   const [player1NameError, setPlayer1NameError] = useState("");
@@ -63,18 +64,13 @@ export const HomeContent = () => {
 
         const asInt = parseInt(eventValue);
 
-        if (Number.isNaN(asInt)) {
-          setBoardSizeError("Invalid input.");
-          break;
-        }
-
-        if (GameSettings.isBoardSizeValid(asInt)) {
-          setBoardSize(asInt);
-        } else {
-          setBoardSizeError(
-            `Board size must be between ${BOARD_SIZE_MIN} and ${BOARD_SIZE_MAX}.`
-          );
-        }
+        setBoardSize((oldValue) =>
+          eventValue === ""
+            ? eventValue
+            : !Number.isNaN(asInt)
+            ? asInt
+            : oldValue
+        );
 
         break;
       }
@@ -123,14 +119,16 @@ export const HomeContent = () => {
       hasError = true;
     }
 
-    if (!boardSize) {
-      setBoardSizeError("Board size is required.");
+    if (!boardSize || !GameSettings.isBoardSizeValid(boardSize)) {
+      setBoardSizeError(
+        `Board size must be between ${BOARD_SIZE_MIN} and ${BOARD_SIZE_MAX}.`
+      );
       hasError = true;
     }
 
     const shipCountCheck = GameSettings.isShipCountsValid(
       shipCounts,
-      boardSize
+      boardSize as number
     );
 
     if (shipCountCheck !== true) {
@@ -145,7 +143,7 @@ export const HomeContent = () => {
     const settings = new GameSettings(
       player1Name,
       player2Name,
-      boardSize,
+      boardSize as number,
       shipCounts
     ).settings;
 
@@ -158,33 +156,29 @@ export const HomeContent = () => {
     <Layout>
       <article className="home-page-container">
         <section className="name-inputs-container">
-          <label className="flex-label">
+          <FlexLabel>
             <InputLabel label="Player 1 name" />
             <input
               type="text"
               value={player1Name}
               onChange={(event) => handleInputChange(event, "player1Name")}
             />
-            {player1NameError && (
-              <ErrorMessage msg={player1NameError} isInputError={true} />
-            )}
-          </label>
+            <ErrorMessage msg={player1NameError} isInputError={true} />
+          </FlexLabel>
 
-          <label className="flex-label">
+          <FlexLabel>
             <InputLabel label="Player 2 name" />
             <input
               type="text"
               value={player2Name}
               onChange={(event) => handleInputChange(event, "player2Name")}
             />
-            {player2NameError && (
-              <ErrorMessage msg={player2NameError} isInputError={true} />
-            )}
-          </label>
+            <ErrorMessage msg={player2NameError} isInputError={true} />
+          </FlexLabel>
         </section>
 
         <section className="number-inputs-container">
-          <label className="flex-label">
+          <FlexLabel>
             <InputLabel
               label={`Board size NxN (N = ${BOARD_SIZE_MIN}-${BOARD_SIZE_MAX})`}
             />
@@ -195,66 +189,76 @@ export const HomeContent = () => {
               min={BOARD_SIZE_MIN}
               max={BOARD_SIZE_MAX}
             />
-            {boardSizeError && (
-              <ErrorMessage msg={boardSizeError} isInputError={true} />
-            )}
-          </label>
-          <label className="flex-label">
-            <InputLabel label="Destroyer ship count" />
-            <ShipCountSelector
-              shipType={ShipType.DESTROYER}
-              maxCount={SHIP_COUNTS_MAX.destroyer}
-              selectedCount={shipCounts.destroyer}
-              setSelectedCount={(count) =>
-                handleShipCountChange(count, ShipType.DESTROYER, "Destroyer")
-              }
-            />
-          </label>
-          <label className="flex-label">
-            <InputLabel label="Submarine ship count" />
-            <ShipCountSelector
-              shipType={ShipType.SUBMARINE}
-              maxCount={SHIP_COUNTS_MAX.submarine}
-              selectedCount={shipCounts.submarine}
-              setSelectedCount={(count) =>
-                handleShipCountChange(count, ShipType.SUBMARINE, "Submarine")
-              }
-            />
-          </label>
-          <label className="flex-label">
-            <InputLabel label="Cruiser ship count" />
-            <ShipCountSelector
-              shipType={ShipType.CRUISER}
-              maxCount={SHIP_COUNTS_MAX.cruiser}
-              selectedCount={shipCounts.cruiser}
-              setSelectedCount={(count) =>
-                handleShipCountChange(count, ShipType.CRUISER, "Cruiser")
-              }
-            />
-          </label>
-          <label className="flex-label">
-            <InputLabel label="Battleship count" />
-            <ShipCountSelector
-              shipType={ShipType.BATTLESHIP}
-              maxCount={SHIP_COUNTS_MAX.battleship}
-              selectedCount={shipCounts.battleship}
-              setSelectedCount={(count) =>
-                handleShipCountChange(count, ShipType.BATTLESHIP, "Battleship")
-              }
-            />
-          </label>
-          <label className="flex-label">
-            <InputLabel label="Carrier ship count" />
-            <ShipCountSelector
-              shipType={ShipType.CARRIER}
-              maxCount={SHIP_COUNTS_MAX.carrier}
-              selectedCount={shipCounts.carrier}
-              setSelectedCount={(count) =>
-                handleShipCountChange(count, ShipType.CARRIER, "Carrier")
-              }
-            />
-          </label>
-          {shipsCountError && <ErrorMessage msg={shipsCountError} />}
+          </FlexLabel>
+
+          <ErrorMessage msg={boardSizeError} isInputError={true} />
+
+          <section className="ship-counts-container">
+            <FlexLabel>
+              <InputLabel label="Destroyer ship count" />
+              <ShipCountSelector
+                shipType={ShipType.DESTROYER}
+                maxCount={SHIP_COUNTS_MAX.destroyer}
+                selectedCount={shipCounts.destroyer}
+                setSelectedCount={(count) =>
+                  handleShipCountChange(count, ShipType.DESTROYER, "Destroyer")
+                }
+              />
+            </FlexLabel>
+
+            <FlexLabel>
+              <InputLabel label="Submarine ship count" />
+              <ShipCountSelector
+                shipType={ShipType.SUBMARINE}
+                maxCount={SHIP_COUNTS_MAX.submarine}
+                selectedCount={shipCounts.submarine}
+                setSelectedCount={(count) =>
+                  handleShipCountChange(count, ShipType.SUBMARINE, "Submarine")
+                }
+              />
+            </FlexLabel>
+
+            <FlexLabel>
+              <InputLabel label="Cruiser ship count" />
+              <ShipCountSelector
+                shipType={ShipType.CRUISER}
+                maxCount={SHIP_COUNTS_MAX.cruiser}
+                selectedCount={shipCounts.cruiser}
+                setSelectedCount={(count) =>
+                  handleShipCountChange(count, ShipType.CRUISER, "Cruiser")
+                }
+              />
+            </FlexLabel>
+
+            <FlexLabel>
+              <InputLabel label="Battleship count" />
+              <ShipCountSelector
+                shipType={ShipType.BATTLESHIP}
+                maxCount={SHIP_COUNTS_MAX.battleship}
+                selectedCount={shipCounts.battleship}
+                setSelectedCount={(count) =>
+                  handleShipCountChange(
+                    count,
+                    ShipType.BATTLESHIP,
+                    "Battleship"
+                  )
+                }
+              />
+            </FlexLabel>
+
+            <FlexLabel>
+              <InputLabel label="Carrier ship count" />
+              <ShipCountSelector
+                shipType={ShipType.CARRIER}
+                maxCount={SHIP_COUNTS_MAX.carrier}
+                selectedCount={shipCounts.carrier}
+                setSelectedCount={(count) =>
+                  handleShipCountChange(count, ShipType.CARRIER, "Carrier")
+                }
+              />
+            </FlexLabel>
+          </section>
+          <ErrorMessage msg={shipsCountError} />
         </section>
 
         <SaveSettingsButton handleSaveSettings={handleSaveSettings} />

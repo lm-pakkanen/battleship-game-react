@@ -3,8 +3,9 @@ import { useEffect, useRef, useState } from "react";
 import { Ship } from "./ships/ship";
 import { isLastShipCell } from "../../../functions/is-first-ship-cell";
 import React from "react";
-import "./tile.css";
 import { getShipOrientation } from "../../../functions/get-ship-orientation";
+import { getLayoutScrollOffset } from "../../../functions/get-layout-scroll-offset";
+import "./tile.css";
 
 export interface Tile {
   coordinate: string;
@@ -110,12 +111,17 @@ export const Tile = React.forwardRef<HTMLDivElement, Tile>(
 
       const rect = ref.current.getBoundingClientRect();
 
+      const { scrollOffsetTop, scrollOffsetLeft } = getLayoutScrollOffset();
+
       setTileBounds((oldBounds) => ({
         ...oldBounds,
         [coordinate]: {
           id: coordinate,
-          xBounds: [rect.left, rect.right],
-          yBounds: [rect.top, rect.bottom],
+          xBounds: [
+            rect.left + scrollOffsetLeft,
+            rect.right + scrollOffsetLeft,
+          ],
+          yBounds: [rect.top + scrollOffsetTop, rect.bottom + scrollOffsetTop],
         },
       }));
     }, [ref.current]);

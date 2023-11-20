@@ -6,10 +6,11 @@ import { addAlert } from "../../../../functions/add-alert";
 import { Battleship } from "./battleship";
 import { EventEmitter } from "events";
 import { Submarine } from "./submarine";
-import "./ship.css";
 import { Carrier } from "./carrier";
 import { Cruiser } from "./cruiser";
 import { Destroyer } from "./destroyer";
+import { getLayoutScrollOffset } from "../../../../functions/get-layout-scroll-offset";
+import "./ship.css";
 
 export interface ShipLocation {
   bottom: number;
@@ -24,9 +25,7 @@ export interface Ship {
 }
 
 export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
-  const { player1, player2, functions, tileBounds } = useGameContext();
-
-  const [, _setRev] = useState(0);
+  const { functions, tileBounds } = useGameContext();
 
   const [classNames, setClassNames] = useState<string[]>([]);
 
@@ -63,21 +62,17 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
   const handleDrag = (event: MouseEvent) => {
     setIsDragging(true);
 
-    setLocation((currentLocation) => {
-      if (!currentLocation || !shipRef.current?.parentElement) {
-        return currentLocation;
-      }
+    const parentElement = shipRef.current!.parentElement!;
+    const parentRect = parentElement.getBoundingClientRect();
 
-      const parentElement = shipRef.current.parentElement;
-      const parentRect = parentElement.getBoundingClientRect();
+    console.log(parentElement);
 
-      const verticalYCorrection = -(parentRect.bottom - 25);
-      const verticalXCorrection = -(parentRect.left + parentRect.width / 2);
+    const verticalYCorrection = -(parentRect.bottom - 25);
+    const verticalXCorrection = -(parentRect.left + parentRect.width / 2);
 
-      return {
-        bottom: -(event.clientY + verticalYCorrection),
-        left: event.clientX + verticalXCorrection,
-      };
+    setLocation({
+      bottom: -(event.clientY + verticalYCorrection),
+      left: event.clientX + verticalXCorrection,
     });
   };
 
@@ -92,9 +87,11 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
   const handleDragEnd = (event: MouseEvent) => {
     setIsDragging(false);
 
+    const { scrollOffsetTop, scrollOffsetLeft } = getLayoutScrollOffset();
+
     const location: ShipLocation = {
-      bottom: event.clientY,
-      left: event.clientX,
+      bottom: event.clientY + scrollOffsetTop,
+      left: event.clientX + scrollOffsetLeft,
     };
 
     const intersectingTile = functions.getIntersectingTileId(location);
@@ -104,12 +101,12 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
 
       if (!success) {
         setLocation({ bottom: 0, left: 0 });
+        setOrientation(ShipOrientation.BOTTOM_TO_TOP);
       }
     } catch (err) {
-      addAlert((err as Error).message);
       setLocation({ bottom: 0, left: 0 });
-    } finally {
       setOrientation(ShipOrientation.BOTTOM_TO_TOP);
+      addAlert((err as Error).message);
     }
   };
 
@@ -189,10 +186,6 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
       dragEmitter.current.off("dragend", handleDragEnd);
     };
   }, [orientation, isTray, tileBounds]);
-
-  useEffect(() => {
-    _setRev((oldRev) => oldRev + 1);
-  }, [player1, player2]);
 
   return (
     <div

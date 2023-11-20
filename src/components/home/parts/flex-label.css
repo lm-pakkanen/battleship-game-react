@@ -1,5 +1,5 @@
-.game-content {
+.flex-label {
   display: flex;
   flex-direction: column;
-  width: 100%;
+  font-size: 0.9rem;
 }

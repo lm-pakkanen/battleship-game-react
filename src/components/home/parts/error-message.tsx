@@ -1,7 +1,7 @@
 import "./error-message.css";
 
 export interface ErrorMessage {
-  msg: string;
+  msg: undefined | string;
   isInputError?: boolean;
 }
 
@@ -12,5 +12,5 @@ export const ErrorMessage = ({ msg, isInputError }: ErrorMessage) => {
     classNames.push("input-error-message");
   }
 
-  return <span className={classNames.join(" ")}>{msg}</span>;
+  return <span className={classNames.join(" ")}>{msg || null}</span>;
 };

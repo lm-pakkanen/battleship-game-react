@@ -1,16 +1,14 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { useGameContext } from "../../../hooks/useGameContex";
 import { ShipType } from "../../../enums/ShipType";
 import { Ship } from "./ships/ship";
-import "./ship-tray.css";
 import { ShipOrientation } from "../../../enums/ShipOrientation";
+import "./ship-tray.css";
 
 export const ShipTray = () => {
   const { settings, turn, stage, player1, player2 } = useGameContext();
 
-  const [ships, setShips] = useState<{ type: ShipType }[]>([]);
-
-  useEffect(() => {
+  const ships: { type: ShipType; randomKey: string }[] = useMemo(() => {
     const playerState = turn === "player1" ? player1 : player2;
     const shipCountsSetting = settings.shipCounts;
 
@@ -35,41 +33,34 @@ export const ShipTray = () => {
         shipType1 < shipType2 ? -1 : shipType1 > shipType2 ? 1 : 0
     )) {
       for (let i = 0; i < shipCount; i++) {
-        _ships.push({ type: shipType as ShipType });
+        const randomKey = Math.random().toString(36).substring(0, 10);
+
+        _ships.push({
+          type: shipType as ShipType,
+          randomKey,
+        });
       }
     }
 
-    setShips(_ships);
-  }, [
-    turn,
-    stage,
-    player1.shipLocations,
-    player1.hitCells,
-    player2.shipLocations,
-    player2.hitCells,
-  ]);
-
-  if (!ships) {
-    return null;
-  }
+    return _ships;
+  }, [turn, stage, player1.shipLocations, player2.shipLocations]);
 
   return (
-    <div className="ship-tray-wrapper">
-      <article className="ship-tray">
-        {ships.map(({ type }, index) => (
-          <section
-            key={`${type}-tray-ship-${index}`}
-            className={`ship-tray-section tray-${type}`}
-          >
-            <Ship
-              type={type}
-              destroyed={false}
-              isTray={true}
-              initialOrientation={ShipOrientation.BOTTOM_TO_TOP}
-            />
-          </section>
-        ))}
-      </article>
-    </div>
+    <article className="ship-tray">
+      {ships.map(({ type, randomKey }, index) => (
+        <section
+          key={`${type}-tray-ship-${randomKey}`}
+          className={`ship-tray-section tray-${type}`}
+          id={`tray-${type}-ship-${index}`}
+        >
+          <Ship
+            type={type}
+            destroyed={false}
+            isTray={true}
+            initialOrientation={ShipOrientation.BOTTOM_TO_TOP}
+          />
+        </section>
+      ))}
+    </article>
   );
 };

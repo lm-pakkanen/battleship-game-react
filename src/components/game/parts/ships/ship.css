@@ -1,7 +1,15 @@
 .ship {
   position: absolute;
   width: 60px;
-  background: red;
+}
+
+/** Ships on the board and all ships' images are not selectable / clickable */
+.ship:not(.tray-ship),
+.ship img {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+  pointer-events: none;
 }
 
 /** Apply location corrections to keep ship centered in board */

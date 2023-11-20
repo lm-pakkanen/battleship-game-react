@@ -1,19 +1,17 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { Ship } from "./ship";
 import "./battleship.css";
 
 export const Battleship = ({ destroyed }: Pick<Ship, "destroyed">) => {
-  const [classNames, setClassNames] = useState<string[]>([]);
-
-  useEffect(() => {
+  const classNames: string[] = useMemo(() => {
     const nextClassNames = ["battleship-wrapper"];
 
     if (destroyed) {
       nextClassNames.push("battleship-destroyed");
     }
 
-    setClassNames(nextClassNames);
-  }, []);
+    return nextClassNames;
+  }, [destroyed]);
 
   return (
     <div className={classNames.join(" ")}>

@@ -1,34 +1,36 @@
-.ship-tray-wrapper {
-  display: flex;
-  width: 100%;
-  padding: 2rem 0;
-  min-height: calc(340px + 2rem);
-  box-sizing: border-box;
-}
-
 .ship-tray {
-  display: flex;
-  flex-wrap: wrap;
-  justify-items: center;
+  display: grid;
+  grid-template-columns: repeat(5, 60px);
   align-items: end;
-  margin: 0 auto;
-  gap: 0 4rem;
-  max-width: 100%;
+  margin: 1rem auto;
+  grid-column-gap: 3rem;
+  grid-row-gap: 3rem;
   box-sizing: border-box;
 }
 
 .ship-tray-section {
   position: relative;
   width: 60px;
-  box-sizing: border-box;
+}
+
+.ship-tray-section.tray-carrier {
+  height: 340px;
 }
 
 .ship-tray-section.tray-battleship {
   height: 265px;
 }
 
+.ship-tray-section.tray-cruiser {
+  height: 195px;
+}
+
 .ship-tray-section.tray-submarine {
-  height: 220px;
+  height: 195px;
+}
+
+.ship-tray-section.tray-destroyer {
+  height: 130px;
 }
 
 .ship-tray-section-count {

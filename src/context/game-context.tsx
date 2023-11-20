@@ -292,7 +292,7 @@ export const GameContextProvider = ({
       };
 
       setBlockPanelProps({
-        timer: 5000,
+        timer: null, // 5000,
         children: "test",
         onTimerEnd,
       });
