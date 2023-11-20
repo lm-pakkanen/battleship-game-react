@@ -58,23 +58,26 @@ export const GameContent = () => {
   }
 
   return (
-    <Layout
-      menuBarContent={
-        <>
-          <ResetGameButton />
-          {stage === "placingShips" && <ResetPlacementsButton />}
-        </>
-      }
-    >
+    <>
       {components.blockPanel.isVisible &&
         components.blockPanel.props.children && (
           <BlockPanel {...components.blockPanel.props} />
         )}
-      <div className="game-content">
-        <Header>{components.header.content}</Header>
-        <Board />
-        <ShipTray />
-      </div>
-    </Layout>
+
+      <Layout
+        menuBarContent={
+          <>
+            <ResetGameButton />
+            {stage === "placingShips" && <ResetPlacementsButton />}
+          </>
+        }
+      >
+        <div className="game-content">
+          <Header>{components.header.content}</Header>
+          <Board />
+          <ShipTray />
+        </div>
+      </Layout>
+    </>
   );
 };

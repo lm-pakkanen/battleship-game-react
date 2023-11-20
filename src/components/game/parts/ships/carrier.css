@@ -1,0 +1,21 @@
+.carrier-wrapper {
+  position: relative;
+  height: 340px;
+}
+
+.carrier-wrapper > img {
+  position: absolute;
+  top: -12px;
+  bottom: 0;
+  left: -60px;
+}
+
+/** Rotate & apply location corrections to keep ship's last cell on top of mouse */
+.ship-horizontal.carrier.dragging {
+  transform: rotate(-90deg) translateX(-146px) translateY(-146px);
+}
+
+/** Rotate & apply location corrections to keep ship centered in board */
+.ship-horizontal.carrier:not(.tray-ship, .dragging) {
+  transform: rotate(-90deg) translateX(-137px) translateY(-137px);
+}

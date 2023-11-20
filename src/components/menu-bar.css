@@ -1,6 +1,15 @@
 .menu-bar {
   display: flex;
-  height: 60px;
+  gap: 0 1.5rem;
+  padding: 0.75rem 2rem;
+  height: 65px;
   width: 100%;
-  background: hsla(0, 0%, 15%, 1);
+  background: rgb(9, 9, 9);
+  background: linear-gradient(
+    90deg,
+    rgba(23, 23, 23, 1) 0%,
+    rgba(19, 19, 19, 1) 46%,
+    rgba(23, 23, 23, 1) 100%
+  );
+  box-sizing: border-box;
 }

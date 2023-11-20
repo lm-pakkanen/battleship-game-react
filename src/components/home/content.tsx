@@ -7,6 +7,11 @@ import {
   SHIP_COUNTS_MAX,
 } from "../../constructors/GameSettings";
 import { Layout } from "../layout";
+import { ErrorMessage } from "./parts/error-message";
+import { ShipCountSelector } from "./parts/ship-count-selector";
+import { ShipType } from "../../enums/ShipType";
+import { InputLabel } from "./parts/input-label";
+import { SaveSettingsButton } from "../controls/save-settings-button";
 
 export const HomeContent = () => {
   const { setSettings } = useMemory();
@@ -19,8 +24,14 @@ export const HomeContent = () => {
   );
 
   const [shipCounts, setShipCounts] = useState<
-    Partial<GameSettings["settings"]["shipCounts"]>
-  >({});
+    GameSettings["settings"]["shipCounts"]
+  >({
+    carrier: 1,
+    battleship: 2,
+    cruiser: 2,
+    submarine: 3,
+    destroyer: 3,
+  });
 
   const [player1NameError, setPlayer1NameError] = useState("");
   const [player2NameError, setPlayer2NameError] = useState("");
@@ -71,29 +82,26 @@ export const HomeContent = () => {
   };
 
   const handleShipCountChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
+    count: number,
     shipKey: keyof GameSettings["settings"]["shipCounts"],
     shipDisplayName: string
   ) => {
     setShipsCountError("");
-
-    const eventValue = event.currentTarget.value;
-    const eventValueAsInt = parseInt(eventValue);
 
     if (!Object.keys(SHIP_COUNTS_MAX).includes(shipKey)) {
       setShipsCountError("Invalid ship key.");
       return;
     }
 
-    if (Number.isNaN(eventValueAsInt)) {
+    if (Number.isNaN(count)) {
       setShipsCountError("Input values must be numbers.");
       return;
     }
 
-    if (GameSettings.isShipCountValid(shipKey, eventValueAsInt)) {
+    if (GameSettings.isShipCountValid(shipKey, count)) {
       setShipCounts((oldState) => ({
         ...oldState,
-        [shipKey]: eventValueAsInt,
+        [shipKey]: count,
       }));
     } else {
       setShipsCountError(
@@ -151,29 +159,35 @@ export const HomeContent = () => {
       <article className="home-page-container">
         <section className="name-inputs-container">
           <label className="flex-label">
-            Player 1 name
+            <InputLabel label="Player 1 name" />
             <input
               type="text"
               value={player1Name}
               onChange={(event) => handleInputChange(event, "player1Name")}
             />
+            {player1NameError && (
+              <ErrorMessage msg={player1NameError} isInputError={true} />
+            )}
           </label>
-          {player1NameError}
 
           <label className="flex-label">
-            Player 2 name
+            <InputLabel label="Player 2 name" />
             <input
               type="text"
               value={player2Name}
               onChange={(event) => handleInputChange(event, "player2Name")}
             />
+            {player2NameError && (
+              <ErrorMessage msg={player2NameError} isInputError={true} />
+            )}
           </label>
         </section>
-        {player2NameError}
 
         <section className="number-inputs-container">
           <label className="flex-label">
-            Board size
+            <InputLabel
+              label={`Board size NxN (N = ${BOARD_SIZE_MIN}-${BOARD_SIZE_MAX})`}
+            />
             <input
               type="number"
               value={boardSize}
@@ -181,80 +195,69 @@ export const HomeContent = () => {
               min={BOARD_SIZE_MIN}
               max={BOARD_SIZE_MAX}
             />
+            {boardSizeError && (
+              <ErrorMessage msg={boardSizeError} isInputError={true} />
+            )}
           </label>
-          {boardSizeError}
-
           <label className="flex-label">
-            Carrier ship count (0 - {SHIP_COUNTS_MAX.carrier})
-            <input
-              type="number"
-              value={shipCounts.carrier || 0}
-              onChange={(event) =>
-                handleShipCountChange(event, "carrier", "Carrier")
+            <InputLabel label="Destroyer ship count" />
+            <ShipCountSelector
+              shipType={ShipType.DESTROYER}
+              maxCount={SHIP_COUNTS_MAX.destroyer}
+              selectedCount={shipCounts.destroyer}
+              setSelectedCount={(count) =>
+                handleShipCountChange(count, ShipType.DESTROYER, "Destroyer")
               }
-              min={0}
-              max={SHIP_COUNTS_MAX.carrier}
             />
           </label>
-
           <label className="flex-label">
-            Battleship ship count (0 - {SHIP_COUNTS_MAX.battleship})
-            <input
-              type="number"
-              value={shipCounts.battleship || 0}
-              onChange={(event) =>
-                handleShipCountChange(event, "battleship", "Battleship")
+            <InputLabel label="Submarine ship count" />
+            <ShipCountSelector
+              shipType={ShipType.SUBMARINE}
+              maxCount={SHIP_COUNTS_MAX.submarine}
+              selectedCount={shipCounts.submarine}
+              setSelectedCount={(count) =>
+                handleShipCountChange(count, ShipType.SUBMARINE, "Submarine")
               }
-              min={0}
-              max={SHIP_COUNTS_MAX.battleship}
             />
           </label>
-
           <label className="flex-label">
-            Cruiser ship count (0 - {SHIP_COUNTS_MAX.cruiser})
-            <input
-              type="number"
-              value={shipCounts.cruiser || 0}
-              onChange={(event) =>
-                handleShipCountChange(event, "cruiser", "Cruiser")
+            <InputLabel label="Cruiser ship count" />
+            <ShipCountSelector
+              shipType={ShipType.CRUISER}
+              maxCount={SHIP_COUNTS_MAX.cruiser}
+              selectedCount={shipCounts.cruiser}
+              setSelectedCount={(count) =>
+                handleShipCountChange(count, ShipType.CRUISER, "Cruiser")
               }
-              min={0}
-              max={SHIP_COUNTS_MAX.cruiser}
             />
           </label>
-
           <label className="flex-label">
-            Submarine ship count (0 - {SHIP_COUNTS_MAX.submarine})
-            <input
-              type="number"
-              value={shipCounts.submarine || 0}
-              onChange={(event) =>
-                handleShipCountChange(event, "submarine", "Submarine")
+            <InputLabel label="Battleship count" />
+            <ShipCountSelector
+              shipType={ShipType.BATTLESHIP}
+              maxCount={SHIP_COUNTS_MAX.battleship}
+              selectedCount={shipCounts.battleship}
+              setSelectedCount={(count) =>
+                handleShipCountChange(count, ShipType.BATTLESHIP, "Battleship")
               }
-              min={0}
-              max={SHIP_COUNTS_MAX.submarine}
             />
           </label>
-
           <label className="flex-label">
-            Destroyer ship count (0 - {SHIP_COUNTS_MAX.destroyer})
-            <input
-              type="number"
-              value={shipCounts.destroyer || 0}
-              onChange={(event) =>
-                handleShipCountChange(event, "destroyer", "Destroyer")
+            <InputLabel label="Carrier ship count" />
+            <ShipCountSelector
+              shipType={ShipType.CARRIER}
+              maxCount={SHIP_COUNTS_MAX.carrier}
+              selectedCount={shipCounts.carrier}
+              setSelectedCount={(count) =>
+                handleShipCountChange(count, ShipType.CARRIER, "Carrier")
               }
-              min={0}
-              max={SHIP_COUNTS_MAX.destroyer}
             />
           </label>
-
-          {shipsCountError}
+          {shipsCountError && <ErrorMessage msg={shipsCountError} />}
         </section>
 
-        <button type="button" onClick={handleSaveSettings}>
-          Save settings
-        </button>
+        <SaveSettingsButton handleSaveSettings={handleSaveSettings} />
       </article>
     </Layout>
   );

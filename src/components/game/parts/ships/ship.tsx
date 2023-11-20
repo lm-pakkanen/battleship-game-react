@@ -5,10 +5,14 @@ import { ShipType } from "../../../../enums/ShipType";
 import { addAlert } from "../../../../functions/add-alert";
 import { Battleship } from "./battleship";
 import { EventEmitter } from "events";
+import { Submarine } from "./submarine";
 import "./ship.css";
+import { Carrier } from "./carrier";
+import { Cruiser } from "./cruiser";
+import { Destroyer } from "./destroyer";
 
 export interface ShipLocation {
-  top: number;
+  bottom: number;
   left: number;
 }
 
@@ -22,18 +26,60 @@ export interface Ship {
 export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
   const { player1, player2, functions, tileBounds } = useGameContext();
 
+  const [, _setRev] = useState(0);
+
   const [classNames, setClassNames] = useState<string[]>([]);
 
   const [orientation, setOrientation] =
     useState<ShipOrientation>(initialOrientation);
 
   const [isDragging, setIsDragging] = useState(false);
-  const [location, setLocation] = useState<null | ShipLocation>(null);
+  const [location, setLocation] = useState<ShipLocation>({
+    bottom: 0,
+    left: 0,
+  });
 
   const dragEmitter = useRef(new EventEmitter());
-
-  const initialLocation = useRef<null | ShipLocation>(null);
   const shipRef = useRef<HTMLDivElement>(null);
+
+  const handleDragStart = () => {
+    document.addEventListener("mousemove", handleDrag);
+    document.addEventListener("keydown", handleRotate);
+    document.addEventListener("mousedown", handleDragEndEvent);
+    document.addEventListener("mouseup", handleDragEndEvent);
+
+    const removeEventListenersCallback = () => {
+      dragEmitter.current.off("dragend", removeEventListenersCallback);
+
+      document.removeEventListener("mousemove", handleDrag);
+      document.removeEventListener("keydown", handleRotate);
+      document.removeEventListener("mouseup", handleDragEndEvent);
+      document.removeEventListener("mousedown", handleDragEndEvent);
+    };
+
+    dragEmitter.current.on("dragend", removeEventListenersCallback);
+  };
+
+  const handleDrag = (event: MouseEvent) => {
+    setIsDragging(true);
+
+    setLocation((currentLocation) => {
+      if (!currentLocation || !shipRef.current?.parentElement) {
+        return currentLocation;
+      }
+
+      const parentElement = shipRef.current.parentElement;
+      const parentRect = parentElement.getBoundingClientRect();
+
+      const verticalYCorrection = -(parentRect.bottom - 25);
+      const verticalXCorrection = -(parentRect.left + parentRect.width / 2);
+
+      return {
+        bottom: -(event.clientY + verticalYCorrection),
+        left: event.clientX + verticalXCorrection,
+      };
+    });
+  };
 
   const handleRotate = () => {
     setOrientation((oldState) =>
@@ -43,36 +89,28 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
     );
   };
 
-  const handleDrag = (event: MouseEvent) => {
-    setIsDragging(true);
+  const handleDragEnd = (event: MouseEvent) => {
+    setIsDragging(false);
 
-    setLocation((currentLocation) => {
-      if (!currentLocation) {
-        return currentLocation;
+    const location: ShipLocation = {
+      bottom: event.clientY,
+      left: event.clientX,
+    };
+
+    const intersectingTile = functions.getIntersectingTileId(location);
+
+    try {
+      const success = functions.placeShip(intersectingTile, type, orientation);
+
+      if (!success) {
+        setLocation({ bottom: 0, left: 0 });
       }
-
-      const verticalYCorrection = -290;
-      const verticalXCorrection = -30;
-
-      return {
-        top: event.clientY + verticalYCorrection,
-        left: event.clientX + verticalXCorrection,
-      };
-    });
-  };
-
-  const handleDragStart = () => {
-    document.addEventListener("mousemove", handleDrag);
-    document.addEventListener("keydown", handleRotate);
-    document.addEventListener("mousedown", handleDragEndEvent);
-    document.addEventListener("mouseup", handleDragEndEvent);
-
-    dragEmitter.current.on("dragend", () => {
-      document.removeEventListener("mousemove", handleDrag);
-      document.removeEventListener("keydown", handleRotate);
-      document.removeEventListener("mouseup", handleDragEndEvent);
-      document.removeEventListener("mousedown", handleDragEndEvent);
-    });
+    } catch (err) {
+      addAlert((err as Error).message);
+      setLocation({ bottom: 0, left: 0 });
+    } finally {
+      setOrientation(ShipOrientation.BOTTOM_TO_TOP);
+    }
   };
 
   const handleDragStartEvent = (event: MouseEvent) => {
@@ -84,30 +122,7 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
     dragEmitter.current.emit("dragend", event);
   };
 
-  const handleDragEnd = (event: MouseEvent) => {
-    const location: ShipLocation = {
-      top: event.clientY,
-      left: event.clientX,
-    };
-
-    const intersectingTile = functions.getIntersectingTileId(location);
-
-    try {
-      const success = functions.placeShip(intersectingTile, type, orientation);
-
-      if (!success) {
-        setLocation(initialLocation.current);
-      }
-    } catch (err) {
-      console.log(err);
-      addAlert((err as Error).message);
-      setLocation(initialLocation.current);
-    } finally {
-      setIsDragging(false);
-      setOrientation(ShipOrientation.BOTTOM_TO_TOP);
-    }
-  };
-
+  // Calculate ship's class names
   useEffect(() => {
     const nextClassNames: string[] = ["ship"];
 
@@ -119,6 +134,8 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
       nextClassNames.push("dragging");
     }
 
+    nextClassNames.push(type);
+
     if (orientation === ShipOrientation.BOTTOM_TO_TOP) {
       nextClassNames.push("ship-vertical");
     } else if (orientation === ShipOrientation.RIGHT_TO_LEFT) {
@@ -126,32 +143,9 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
     }
 
     setClassNames(nextClassNames);
-  }, [orientation, isDragging]);
+  }, [type, orientation, isDragging]);
 
-  useEffect(() => {
-    if (!isTray || !shipRef.current) {
-      return;
-    }
-
-    const parentElementRect =
-      shipRef.current.parentElement?.getBoundingClientRect();
-
-    const _initialLocation: ShipLocation = {
-      top: parentElementRect?.top ?? 0,
-      left: parentElementRect?.left ?? 0,
-    };
-
-    console.log(_initialLocation);
-
-    initialLocation.current = _initialLocation;
-    setLocation(_initialLocation);
-  }, [
-    shipRef.current?.parentElement?.getBoundingClientRect()?.left,
-    isTray,
-    player1,
-    player2,
-  ]);
-
+  // Create drag handlers when ship is initially clicked (drag start)
   useEffect(() => {
     if (!isTray || !shipRef.current) {
       return;
@@ -166,6 +160,7 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
     };
   }, [shipRef.current, isTray]);
 
+  // React to dragstart event
   useEffect(() => {
     if (!isTray) {
       return;
@@ -182,6 +177,7 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
     };
   }, [isTray]);
 
+  // React to dragend event
   useEffect(() => {
     if (!isTray || !tileBounds) {
       return;
@@ -194,6 +190,10 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
     };
   }, [orientation, isTray, tileBounds]);
 
+  useEffect(() => {
+    _setRev((oldRev) => oldRev + 1);
+  }, [player1, player2]);
+
   return (
     <div
       className={classNames.join(" ")}
@@ -204,6 +204,14 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
     >
       {type === ShipType.BATTLESHIP ? (
         <Battleship destroyed={destroyed} />
+      ) : type === ShipType.SUBMARINE ? (
+        <Submarine destroyed={destroyed} />
+      ) : type === ShipType.CARRIER ? (
+        <Carrier destroyed={destroyed} />
+      ) : type === ShipType.CRUISER ? (
+        <Cruiser destroyed={destroyed} />
+      ) : type === ShipType.DESTROYER ? (
+        <Destroyer destroyed={destroyed} />
       ) : null}
     </div>
   );

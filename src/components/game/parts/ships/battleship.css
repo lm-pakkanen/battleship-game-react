@@ -1,11 +1,21 @@
-.battleship {
-  height: 260px;
+.battleship-wrapper {
+  position: relative;
+  height: 265px;
 }
 
-.battleship:not(.battleship-destroyed) {
-  background: black;
+.battleship-wrapper > img {
+  position: absolute;
+  top: -20px;
+  bottom: 0;
+  left: -60px;
 }
 
-.battleship-destroyed {
-  background: red;
+/** Rotate & apply location corrections to keep ship's last cell on top of mouse */
+.ship-horizontal.battleship.dragging {
+  transform: rotate(-90deg) translateX(-100px) translateY(-100px);
+}
+
+/** Rotate & apply location corrections to keep ship centered in board */
+.ship-horizontal.battleship:not(.tray-ship, .dragging) {
+  transform: rotate(-90deg) translateX(-99px) translateY(-102px);
 }

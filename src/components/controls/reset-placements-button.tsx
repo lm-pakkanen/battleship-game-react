@@ -1,5 +1,6 @@
 import { addAlert } from "../../functions/add-alert";
 import { useGameContext } from "../../hooks/useGameContex";
+import "./button.css";
 
 export const ResetPlacementsButton = () => {
   const { turn, stage, functions } = useGameContext();
@@ -16,11 +17,7 @@ export const ResetPlacementsButton = () => {
   };
 
   return (
-    <button
-      className="reset-ship-placements-button"
-      type="button"
-      onClick={handleReset}
-    >
+    <button className="button" type="button" onClick={handleReset}>
       Reset ships
     </button>
   );

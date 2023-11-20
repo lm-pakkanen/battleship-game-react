@@ -1,0 +1,21 @@
+.submarine-wrapper {
+  position: relative;
+  height: 195px;
+}
+
+.submarine-wrapper > img {
+  position: absolute;
+  top: -17px;
+  bottom: 0;
+  left: -43px;
+}
+
+/** Rotate & apply location corrections to keep ship's last cell on top of mouse */
+.ship-horizontal.submarine.dragging {
+  transform: rotate(-90deg) translateX(-74px) translateY(-74px);
+}
+
+/** Rotate & apply location corrections to keep ship centered in board */
+.ship-horizontal.submarine:not(.tray-ship, .dragging) {
+  transform: rotate(-90deg) translateX(-64px) translateY(-66px);
+}

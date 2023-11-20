@@ -1,25 +1,10 @@
 .ship {
   position: absolute;
   width: 60px;
-  border-radius: 3rem 3rem 2rem 2rem;
+  background: red;
 }
 
-.ship.tray-ship {
-  transform: translateY(-57px);
-}
-
-.ship-vertical.dragging {
-  transform: rotate(0deg) translateX(0px) translateY(0px);
-}
-
+/** Apply location corrections to keep ship centered in board */
 .ship-vertical:not(.tray-ship, .dragging) {
-  transform: rotate(0deg) translateX(-5px) translateY(-203px);
-}
-
-.ship-horizontal.dragging {
-  transform: rotate(-90deg) translateX(-100px) translateY(-100px);
-}
-
-.ship-horizontal:not(.tray-ship, .dragging) {
-  transform: rotate(-90deg) translateX(96px) translateY(-110px);
+  transform: translateX(3px) translateY(-7px);
 }

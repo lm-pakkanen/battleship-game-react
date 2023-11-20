@@ -1,0 +1,22 @@
+.destroyer-wrapper {
+  position: relative;
+  height: 130px;
+}
+
+.destroyer-wrapper > img {
+  position: absolute;
+  top: -19px;
+  bottom: 0;
+  left: -74px;
+  transform: rotate(180deg);
+}
+
+/** Rotate & apply location corrections to keep ship's last cell on top of mouse */
+.ship-horizontal.destroyer.dragging {
+  transform: rotate(-90deg) translateX(-40px) translateY(-40px);
+}
+
+/** Rotate & apply location corrections to keep ship centered in board */
+.ship-horizontal.destroyer:not(.tray-ship, .dragging) {
+  transform: rotate(-90deg) translateX(-32px) translateY(-32px);
+}

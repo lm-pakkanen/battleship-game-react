@@ -59,7 +59,7 @@ export const ShipTray = () => {
         {ships.map(({ type }, index) => (
           <section
             key={`${type}-tray-ship-${index}`}
-            className="ship-tray-section"
+            className={`ship-tray-section tray-${type}`}
           >
             <Ship
               type={type}

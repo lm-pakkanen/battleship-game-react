@@ -75,7 +75,12 @@ export const Tile = React.forwardRef<HTMLDivElement, Tile>(
           isLastShipCell(coordinate, tileShip)
         ) {
           setChildren(
-            <Ship type={tileShip.shipType} destroyed={true} isTray={false} />
+            <Ship
+              type={tileShip.shipType}
+              destroyed={true}
+              isTray={false}
+              initialOrientation={getShipOrientation(tileShip)}
+            />
           );
 
           return;

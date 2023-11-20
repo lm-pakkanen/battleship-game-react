@@ -154,8 +154,8 @@ export const GameContextProvider = ({
         return (
           location.left > xMin &&
           location.left < xMax &&
-          location.top > yMin &&
-          location.top < yMax
+          location.bottom > yMin &&
+          location.bottom < yMax
         );
       });
 
@@ -281,7 +281,7 @@ export const GameContextProvider = ({
       ],
     }));
 
-    /*if (currentShipCount + 1 === maxShipCount) {
+    if (currentShipCount + 1 === maxShipCount) {
       const onTimerEnd = () => {
         if (turn === "player1") {
           setTurn("player2");
@@ -298,7 +298,7 @@ export const GameContextProvider = ({
       });
 
       setIsBlockPanelVisible(true);
-    }*/
+    }
 
     return true;
   };
