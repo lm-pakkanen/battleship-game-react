@@ -65,8 +65,6 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
     const parentElement = shipRef.current!.parentElement!;
     const parentRect = parentElement.getBoundingClientRect();
 
-    console.log(parentElement);
-
     const verticalYCorrection = -(parentRect.bottom - 25);
     const verticalXCorrection = -(parentRect.left + parentRect.width / 2);
 
