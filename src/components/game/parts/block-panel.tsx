@@ -6,14 +6,22 @@ import "./block-panel.css";
 export interface BlockPanel {
   isVisible: boolean;
   timer: null | number;
-  textContent: string;
-  onTimerEnd: () => void;
+  children: React.ReactNode;
+  routeTo?: string;
+  onShow?: () => void;
+  onPanelVisible?: () => void;
+  onTimerEnd?: () => void;
 }
+
+const TIME_TO_PANEL_VISIBLE_MS = 1000;
 
 export const BlockPanel = ({
   isVisible,
   timer,
-  textContent,
+  children,
+  routeTo,
+  onShow,
+  onPanelVisible,
   onTimerEnd,
 }: BlockPanel) => {
   const { components } = useGameContext();
@@ -31,7 +39,7 @@ export const BlockPanel = ({
   }, [isVisible]);
 
   useEffect(() => {
-    if (!timer) {
+    if (!isVisible) {
       return;
     }
 
@@ -39,12 +47,8 @@ export const BlockPanel = ({
 
     let countdownInterval: undefined | number = undefined;
 
-    const updateCountdown = () => {
-      const timeLeft = Math.floor((timer - loopCount * 1000) / 1000);
-
-      if (timeLeft < 2) {
-        onTimerEnd();
-      }
+    const loopCountdown = () => {
+      const timeLeft = Math.floor((timer! - loopCount * 1000) / 1000);
 
       if (timeLeft >= 0) {
         setCountdownValue(timeLeft);
@@ -54,20 +58,66 @@ export const BlockPanel = ({
       }
     };
 
-    updateCountdown();
-    countdownInterval = setInterval(updateCountdown, 1000);
+    if (timer) {
+      loopCountdown();
+      countdownInterval = setInterval(loopCountdown, 1000);
+    }
 
-    const hideTimeout = setTimeout(() => {
-      components.blockPanel.setProps(
-        initialGameContext.components.blockPanel.props
-      );
-    }, timer);
+    let onVisibleTimeout: undefined | number = undefined;
+    let hideTimeout: undefined | number = undefined;
+
+    if (onPanelVisible) {
+      onVisibleTimeout = setTimeout(() => {
+        onPanelVisible();
+      }, TIME_TO_PANEL_VISIBLE_MS);
+    }
+
+    if (timer) {
+      hideTimeout = setTimeout(() => {
+        if (onVisibleTimeout) {
+          clearTimeout(onVisibleTimeout);
+        }
+
+        if (countdownInterval) {
+          clearInterval(countdownInterval);
+        }
+
+        if (onTimerEnd) {
+          onTimerEnd();
+        }
+
+        if (routeTo) {
+          window.location.href = routeTo;
+          return;
+        }
+
+        setCountdownValue(null);
+        components.blockPanel.setProps(
+          initialGameContext.components.blockPanel.props
+        );
+      }, timer);
+    }
 
     return () => {
-      clearInterval(countdownInterval);
-      clearTimeout(hideTimeout);
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+      }
+
+      if (onVisibleTimeout) {
+        clearTimeout(onVisibleTimeout);
+      }
+
+      if (hideTimeout) {
+        clearTimeout(hideTimeout);
+      }
     };
-  }, [timer]);
+  }, [isVisible, timer]);
+
+  useEffect(() => {
+    if (isVisible && onShow) {
+      onShow();
+    }
+  }, [isVisible, onShow]);
 
   return (
     <div className={classNames.join(" ")}>
@@ -76,7 +126,7 @@ export const BlockPanel = ({
         {countdownValue && (
           <span className="text-header1 text-bold color-white">{`${countdownValue}s`}</span>
         )}
-        {textContent}
+        {children}
       </div>
     </div>
   );

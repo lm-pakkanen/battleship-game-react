@@ -1,36 +1,31 @@
-import { initialGameContext } from "../../context/game-context";
 import { useGameContext } from "../../hooks/useGameContex";
 import { useMemory } from "../../hooks/useMemory";
 import "./button.css";
 
-export const ResetGameButton = () => {
-  const { functions, components } = useGameContext();
+export interface ResetGameButton {
+  isEndGameScreen: boolean;
+}
+
+export const ResetGameButton = ({ isEndGameScreen }: ResetGameButton) => {
+  const { components } = useGameContext();
   const memory = useMemory();
 
   const handleReset = () => {
     components.blockPanel.setProps({
       isVisible: true,
-      textContent: "Resetting game...",
+      children: "Resetting game...",
       timer: 5000,
-      onTimerEnd: () => {
-        functions.setStage(initialGameContext.stage);
-        functions.setTurn(initialGameContext.turn);
-        functions.setPlayer1(initialGameContext.player1);
-        functions.setPlayer2(initialGameContext.player2);
-        functions.setSettings(initialGameContext.settings);
-        window.location.href = "/";
+      onShow() {
+        memory.setContext(null);
+        memory.setSettings(null);
       },
+      routeTo: "/",
     });
-
-    setTimeout(() => {
-      memory.setContext(null);
-      memory.setSettings(null);
-    }, 500);
   };
 
   return (
     <button className="button" type="button" onClick={handleReset}>
-      Reset game & settings
+      {isEndGameScreen ? "Start a new game" : "Reset game & settings"}
     </button>
   );
 };

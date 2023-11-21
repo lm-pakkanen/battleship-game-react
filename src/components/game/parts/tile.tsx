@@ -5,8 +5,8 @@ import { isLastShipCell } from "../../../functions/is-first-ship-cell";
 import React from "react";
 import { getShipOrientation } from "../../../functions/get-ship-orientation";
 import { getLayoutScrollOffset } from "../../../functions/get-layout-scroll-offset";
-import "./tile.css";
 import { GuessMarker } from "./guess-marker";
+import "./tile.css";
 
 export interface Tile {
   coordinate: string;
@@ -34,6 +34,8 @@ export const Tile = React.forwardRef<HTMLDivElement, Tile>(
       if (stage === "settings" || !turn) {
         return;
       }
+
+      setChildren(null);
 
       const playerState = turn === "player1" ? player1 : player2;
       const oppositePlayerState = turn === "player1" ? player2 : player1;
@@ -75,19 +77,24 @@ export const Tile = React.forwardRef<HTMLDivElement, Tile>(
           isShipDestroyed &&
           isLastShipCell(coordinate, tileShip)
         ) {
+          // Ship + hit marker
           setChildren(
-            <Ship
-              type={tileShip.shipType}
-              destroyed={true}
-              isTray={false}
-              initialOrientation={getShipOrientation(tileShip)}
-            />
+            <>
+              <Ship
+                type={tileShip.shipType}
+                destroyed={true}
+                isTray={false}
+                initialOrientation={getShipOrientation(tileShip)}
+              />
+              <GuessMarker variant={"hit"} />
+            </>
           );
 
           return;
         }
 
-        if (isHit && !isShipDestroyed) {
+        if (isHit) {
+          // Hit marker only
           setChildren(<GuessMarker variant={hasHitShip ? "hit" : "miss"} />);
         }
       }

@@ -1,10 +1,13 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useMemo, useState } from "react";
 import { GameSettings, SHIP_SIZES } from "../constructors/GameSettings";
 import { ShipType } from "../enums/ShipType";
 import { ShipOrientation } from "../enums/ShipOrientation";
 import { BlockPanel } from "../components/game/parts/block-panel";
 import { useMemory } from "../hooks/useMemory";
 import { ShipLocation } from "../components/game/parts/ships/ship";
+import { playSound } from "../functions/play-sound";
+import { SoundEffect } from "../enums/SoundEffect";
+import { ResetGameButton } from "../components/controls/reset-game-button";
 
 export interface PlayerState {
   hitCells: string[];
@@ -15,11 +18,12 @@ export interface PlayerState {
 }
 
 export interface GameContext {
-  stage: "settings" | "placingShips" | "playing";
+  stage: "settings" | "placingShips" | "playing" | "gameOver";
   settings: GameSettings["settings"];
   player1: PlayerState;
   player2: PlayerState;
   turn: null | "player1" | "player2";
+  allShipsSunk: boolean;
   tileBounds: Record<
     string,
     {
@@ -53,6 +57,7 @@ export interface GameContext {
       shipOrientation: ShipOrientation
     ) => boolean;
     getIntersectingTileId: (location: ShipLocation) => undefined | string;
+    endGame: (nextHitCells?: string[]) => void;
   };
 }
 
@@ -79,6 +84,7 @@ export const initialGameContext: GameContext = {
     shipLocations: [],
   },
   turn: null,
+  allShipsSunk: false,
   tileBounds: {},
   setTileBounds: () => undefined,
   components: {
@@ -90,7 +96,7 @@ export const initialGameContext: GameContext = {
       props: {
         isVisible: false,
         timer: null,
-        textContent: "",
+        children: null,
         onTimerEnd: () => undefined,
       },
       setProps: () => undefined,
@@ -104,6 +110,7 @@ export const initialGameContext: GameContext = {
     setPlayer2: () => undefined,
     placeShip: () => false,
     getIntersectingTileId: () => undefined,
+    endGame: () => undefined,
   },
 };
 
@@ -134,6 +141,26 @@ export const GameContextProvider = ({
   const [blockPanelProps, setBlockPanelProps] = useState(
     initialGameContext.components.blockPanel.props
   );
+
+  const allShipsSunk = useMemo(() => {
+    const p1Coordinates = player1.shipLocations
+      .map((ship) => ship.coordinates)
+      .flat();
+
+    const p2Coordinates = player2.shipLocations
+      .map((ship) => ship.coordinates)
+      .flat();
+
+    const p1HitCells = player1.hitCells;
+    const p2HitCells = player2.hitCells;
+
+    const eitherPlayerAllShipsSunk = [
+      p1Coordinates.every((n) => p1HitCells.includes(n)),
+      p2Coordinates.every((n) => p2HitCells.includes(n)),
+    ].some((n) => n);
+
+    return stage === "playing" && eitherPlayerAllShipsSunk;
+  }, [player1, player2]);
 
   const getIntersectingTileId: GameContext["functions"]["getIntersectingTileId"] =
     (location) => {
@@ -275,25 +302,89 @@ export const GameContextProvider = ({
     }));
 
     if (currentShipCount + 1 === maxShipCount) {
-      const onTimerEnd = () => {
-        if (turn === "player1") {
-          setTurn("player2");
-        } else {
-          setStage("playing");
-          setTurn("player1");
-        }
-      };
+      const blockPanelText =
+        turn === "player1"
+          ? `Time for ${settings.player2Name} to place ships!`
+          : `Time for ${settings.player2Name} to sink your ships!`;
 
       setBlockPanelProps({
         isVisible: true,
         timer: 5000,
-        textContent: "test",
-        onTimerEnd,
+        children: (
+          <>
+            <span className="block-panel-text">{blockPanelText}</span>
+            <span className="block-panel-text">Switching sides...</span>
+          </>
+        ),
+        onPanelVisible: () => {
+          if (turn === "player1") {
+            setTurn("player2");
+          } else {
+            setStage("playing");
+            setTurn("player1");
+          }
+        },
+        onTimerEnd: () => {
+          playSound(SoundEffect.TURN_START);
+        },
       });
     }
 
     return true;
   };
+
+  const endGame: GameContext["functions"]["endGame"] = (nextHitCells) => {
+    if (!["playing", "gameOver"].includes(stage)) {
+      throw new Error("Invalid stage for ending game.");
+    }
+
+    const p1Coordinates = player1.shipLocations
+      .map((ship) => ship.coordinates)
+      .flat();
+
+    const p2Coordinates = player2.shipLocations
+      .map((ship) => ship.coordinates)
+      .flat();
+
+    const p1HitCells =
+      turn === "player1" || !nextHitCells ? player1.hitCells : nextHitCells;
+
+    const p2HitCells =
+      turn === "player2" || !nextHitCells ? player2.hitCells : nextHitCells;
+
+    const allShipsSunk = [
+      p1Coordinates.every((n) => p1HitCells.includes(n)),
+      p2Coordinates.every((n) => p2HitCells.includes(n)),
+    ].some((n) => n);
+
+    if (!allShipsSunk) {
+      throw new Error("Not all ships are sunk yet!");
+    }
+
+    const playerName =
+      turn === "player1" ? settings.player1Name : settings.player2Name;
+
+    setBlockPanelProps({
+      isVisible: true,
+      children: (
+        <>
+          <span className="block-panel-text">Winner: {playerName}!</span>
+          <ResetGameButton isEndGameScreen={true} />
+        </>
+      ),
+      timer: null,
+      onShow: () => {
+        setStage("gameOver");
+      },
+    });
+  };
+
+  useEffect(() => {
+    if ((stage === "gameOver" && !blockPanelProps.isVisible) || allShipsSunk) {
+      endGame();
+      return;
+    }
+  }, [stage, allShipsSunk]);
 
   const providerValue: GameContext = {
     stage,
@@ -301,6 +392,7 @@ export const GameContextProvider = ({
     player1,
     player2,
     turn,
+    allShipsSunk,
     tileBounds,
     setTileBounds,
     components: {
@@ -321,6 +413,7 @@ export const GameContextProvider = ({
       setPlayer2,
       placeShip,
       getIntersectingTileId,
+      endGame,
     },
   };
 

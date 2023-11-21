@@ -12,7 +12,7 @@ import { transformName } from "../../functions/transform-name";
 
 export const GameContent = () => {
   const { getSettings } = useMemory();
-  const { stage, turn, components, functions } = useGameContext();
+  const { stage, turn, allShipsSunk, components, functions } = useGameContext();
 
   const [isReady, setIsReady] = useState(false);
 
@@ -61,20 +61,22 @@ export const GameContent = () => {
     <>
       <BlockPanel {...components.blockPanel.props} />
 
-      <Layout
-        menuBarContent={
-          <>
-            <ResetGameButton />
-            {stage === "placingShips" && <ResetPlacementsButton />}
-          </>
-        }
-      >
-        <div className="game-content">
-          <Header>{components.header.content}</Header>
-          <Board />
-          <ShipTray />
-        </div>
-      </Layout>
+      {!allShipsSunk && stage !== "gameOver" && (
+        <Layout
+          menuBarContent={
+            <>
+              <ResetGameButton isEndGameScreen={false} />
+              {stage === "placingShips" && <ResetPlacementsButton />}
+            </>
+          }
+        >
+          <div className="game-content">
+            <Header>{components.header.content}</Header>
+            <Board />
+            <ShipTray />
+          </div>
+        </Layout>
+      )}
     </>
   );
 };

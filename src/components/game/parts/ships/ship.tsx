@@ -38,28 +38,43 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
     left: 0,
   });
 
+  const [touchLocation, setTouchLocation] = useState<null | {
+    clientY: number;
+    clientX: number;
+  }>(null);
+
   const dragEmitter = useRef(new EventEmitter());
   const shipRef = useRef<HTMLDivElement>(null);
 
   const handleDragStart = () => {
+    document.addEventListener("touchmove", handleDrag);
     document.addEventListener("mousemove", handleDrag);
+
+    document.addEventListener("touchstart", handleRotate);
     document.addEventListener("keydown", handleRotate);
-    document.addEventListener("mousedown", handleDragEndEvent);
+
     document.addEventListener("mouseup", handleDragEndEvent);
+    document.addEventListener("touchend", handleDragEndEvent);
+    document.addEventListener("touchcancel", handleDragEndEvent);
 
     const removeEventListenersCallback = () => {
       dragEmitter.current.off("dragend", removeEventListenersCallback);
 
+      document.removeEventListener("touchmove", handleDrag);
       document.removeEventListener("mousemove", handleDrag);
+
+      document.removeEventListener("touchstart", handleRotate);
       document.removeEventListener("keydown", handleRotate);
+
+      document.removeEventListener("touchend", handleDragEndEvent);
       document.removeEventListener("mouseup", handleDragEndEvent);
-      document.removeEventListener("mousedown", handleDragEndEvent);
+      document.addEventListener("touchcancel", handleDragEndEvent);
     };
 
     dragEmitter.current.on("dragend", removeEventListenersCallback);
   };
 
-  const handleDrag = (event: MouseEvent) => {
+  const handleDrag = (event: MouseEvent | TouchEvent) => {
     setIsDragging(true);
 
     const parentElement = shipRef.current!.parentElement!;
@@ -68,13 +83,30 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
     const verticalYCorrection = -(parentRect.bottom - 25);
     const verticalXCorrection = -(parentRect.left + parentRect.width / 2);
 
+    let clientY = 0;
+    let clientX = 0;
+
+    if (event instanceof TouchEvent) {
+      const touch = event.touches[0];
+      clientY = touch.clientY;
+      clientX = touch.clientX;
+      setTouchLocation({ clientY, clientX });
+    } else if (event instanceof MouseEvent) {
+      clientY = event.clientY;
+      clientX = event.clientX;
+    }
+
     setLocation({
-      bottom: -(event.clientY + verticalYCorrection),
-      left: event.clientX + verticalXCorrection,
+      bottom: -(clientY + verticalYCorrection),
+      left: clientX + verticalXCorrection,
     });
   };
 
-  const handleRotate = () => {
+  const handleRotate = (event: KeyboardEvent | TouchEvent) => {
+    if (event instanceof KeyboardEvent && event.key !== "r") {
+      return;
+    }
+
     setOrientation((oldState) =>
       oldState === ShipOrientation.BOTTOM_TO_TOP
         ? ShipOrientation.RIGHT_TO_LEFT
@@ -82,14 +114,26 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
     );
   };
 
-  const handleDragEnd = (event: MouseEvent) => {
+  const handleDragEnd = (event: MouseEvent | TouchEvent) => {
     setIsDragging(false);
 
     const { scrollOffsetTop, scrollOffsetLeft } = getLayoutScrollOffset();
 
+    let clientY = 0;
+    let clientX = 0;
+
+    if (event instanceof TouchEvent) {
+      const _touchLocation = { ...touchLocation };
+      clientY = _touchLocation.clientY || 0;
+      clientX = _touchLocation.clientX || 0;
+    } else if (event instanceof MouseEvent) {
+      clientY = event.clientY;
+      clientX = event.clientX;
+    }
+
     const location: ShipLocation = {
-      bottom: event.clientY + scrollOffsetTop,
-      left: event.clientX + scrollOffsetLeft,
+      bottom: clientY + scrollOffsetTop,
+      left: clientX + scrollOffsetLeft,
     };
 
     const intersectingTile = functions.getIntersectingTileId(location);
@@ -108,12 +152,13 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
     }
   };
 
-  const handleDragStartEvent = (event: MouseEvent) => {
+  const handleDragStartEvent = (event: MouseEvent | TouchEvent) => {
+    event.preventDefault();
     event.stopPropagation();
     dragEmitter.current.emit("dragstart", event);
   };
 
-  const handleDragEndEvent = (event: MouseEvent) => {
+  const handleDragEndEvent = (event: MouseEvent | TouchEvent) => {
     dragEmitter.current.emit("dragend", event);
   };
 
@@ -146,10 +191,12 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
       return;
     }
 
+    shipRef.current.addEventListener("touchstart", handleDragStartEvent);
     shipRef.current.addEventListener("mousedown", handleDragStartEvent);
 
     return () => {
       if (shipRef.current) {
+        shipRef.current.removeEventListener("touchstart", handleDragStartEvent);
         shipRef.current.removeEventListener("mousedown", handleDragStartEvent);
       }
     };
@@ -165,10 +212,15 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
 
     return () => {
       dragEmitter.current.off("dragstart", handleDragStart);
+      document.removeEventListener("touchmove", handleDrag);
       document.removeEventListener("mousemove", handleDrag);
+
+      document.removeEventListener("touchstart", handleRotate);
       document.removeEventListener("keydown", handleRotate);
+
+      document.removeEventListener("touchend", handleDragEndEvent);
       document.removeEventListener("mouseup", handleDragEndEvent);
-      document.removeEventListener("mousedown", handleDragEndEvent);
+      document.addEventListener("touchcancel", handleDragEndEvent);
     };
   }, [isTray]);
 
@@ -183,7 +235,7 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
     return () => {
       dragEmitter.current.off("dragend", handleDragEnd);
     };
-  }, [orientation, isTray, tileBounds]);
+  }, [orientation, isTray, touchLocation, tileBounds]);
 
   return (
     <div

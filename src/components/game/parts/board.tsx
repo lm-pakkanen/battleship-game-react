@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useGameContext } from "../../../hooks/useGameContex";
 import { Tile } from "./tile";
+import { playSound } from "../../../functions/play-sound";
+import { SoundEffect } from "../../../enums/SoundEffect";
 import "./board.css";
 
 const ROW_NAME_LETTERS = "ABCDEFGHIJ";
@@ -26,32 +28,42 @@ export const Board = () => {
 
     if (oppositeState.hitCells.some((n) => n === coordinate)) {
       alert("Already guessed!");
+      return;
     }
 
-    const shouldChangeTurn = !oppositeState.shipLocations.some((n) =>
+    const hasHitShip = oppositeState.shipLocations.some((n) =>
       n.coordinates.includes(coordinate)
     );
 
+    if (hasHitShip) {
+      playSound(SoundEffect.GUESS_HIT);
+    } else {
+      playSound(SoundEffect.GUESS_MISS);
+    }
+
+    const nextHitCells = [...oppositeState.hitCells, coordinate];
+
     setOppositePlayer((oldState) => ({
       ...oldState,
-      hitCells: [...oldState.hitCells, coordinate],
+      hitCells: nextHitCells,
     }));
 
-    if (shouldChangeTurn) {
+    if (!hasHitShip) {
       setHasGuessesLeft(false);
-
-      const onTimerEnd = () => {
-        functions.setTurn((oldState) =>
-          oldState === "player1" ? "player2" : "player1"
-        );
-      };
 
       setTimeout(() => {
         components.blockPanel.setProps({
           isVisible: true,
-          timer: null, //5000,
-          textContent: "Switching sides!",
-          onTimerEnd,
+          timer: 5000,
+          children: "Switching sides...",
+          onPanelVisible() {
+            functions.setTurn((oldState) =>
+              oldState === "player1" ? "player2" : "player1"
+            );
+          },
+          onTimerEnd: () => {
+            playSound(SoundEffect.TURN_START);
+          },
         });
       }, 2000);
     }

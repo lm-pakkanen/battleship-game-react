@@ -4,6 +4,7 @@
   left: 10px;
   font-size: 4rem;
   font-weight: bold;
+  z-index: 99;
 }
 
 .guess-marker.hit {
