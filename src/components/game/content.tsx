@@ -59,10 +59,7 @@ export const GameContent = () => {
 
   return (
     <>
-      {components.blockPanel.isVisible &&
-        components.blockPanel.props.children && (
-          <BlockPanel {...components.blockPanel.props} />
-        )}
+      <BlockPanel {...components.blockPanel.props} />
 
       <Layout
         menuBarContent={

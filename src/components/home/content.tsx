@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMemory } from "../../hooks/useMemory";
 import {
   BOARD_SIZE_MAX,
@@ -17,7 +17,7 @@ import { FlexLabel } from "./parts/flex-label";
 import { ShipCountLabel } from "./parts/ship-count-label";
 
 export const HomeContent = () => {
-  const { setSettings } = useMemory();
+  const { getSettings, setSettings } = useMemory();
 
   const [player1Name, setPlayer1Name] = useState("");
   const [player2Name, setPlayer2Name] = useState("");
@@ -153,6 +153,16 @@ export const HomeContent = () => {
 
     window.location.href = "/game";
   };
+
+  useEffect(() => {
+    if (getSettings()) {
+      window.location.href = "/game";
+    }
+  }, []);
+
+  if (getSettings()) {
+    return null;
+  }
 
   return (
     <Layout>

@@ -1,0 +1,15 @@
+.guess-marker {
+  position: absolute;
+  top: -2px;
+  left: 10px;
+  font-size: 4rem;
+  font-weight: bold;
+}
+
+.guess-marker.hit {
+  color: hsla(0, 80%, 42%, 1);
+}
+
+.guess-marker.miss {
+  color: white;
+}

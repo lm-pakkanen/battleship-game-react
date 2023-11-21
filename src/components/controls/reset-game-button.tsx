@@ -9,7 +9,8 @@ export const ResetGameButton = () => {
 
   const handleReset = () => {
     components.blockPanel.setProps({
-      children: "Resetting game...",
+      isVisible: true,
+      textContent: "Resetting game...",
       timer: 5000,
       onTimerEnd: () => {
         functions.setStage(initialGameContext.stage);
@@ -20,8 +21,6 @@ export const ResetGameButton = () => {
         window.location.href = "/";
       },
     });
-
-    components.blockPanel.setIsVisible(true);
 
     setTimeout(() => {
       memory.setContext(null);

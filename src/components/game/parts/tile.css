@@ -2,6 +2,26 @@
   position: relative;
   height: 70px;
   width: 70px;
-  border: 1px solid black;
+  color: white;
   box-sizing: border-box;
+}
+
+.tile + .tile {
+  border-left: 1px solid hsla(0, 0%, 70%, 1);
+}
+
+.tile-coordinate {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  font-size: 0.8rem;
+  /** https://stackoverflow.com/questions/13426875/text-border-using-css-border-around-text */
+  text-shadow: 1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000,
+    -1px -1px #000, 1px -1px #000, -1px 1px #000;
+  font-weight: bold;
+  z-index: 3;
+}
+
+.tile.aim {
+  cursor: pointer;
 }

@@ -38,9 +38,7 @@ export interface GameContext {
     };
     blockPanel: {
       props: BlockPanel;
-      isVisible: boolean;
       setProps: React.Dispatch<React.SetStateAction<BlockPanel>>;
-      setIsVisible: React.Dispatch<React.SetStateAction<boolean>>;
     };
   };
   functions: {
@@ -90,13 +88,12 @@ export const initialGameContext: GameContext = {
     },
     blockPanel: {
       props: {
+        isVisible: false,
         timer: null,
-        children: null,
+        textContent: "",
         onTimerEnd: () => undefined,
       },
-      isVisible: false,
       setProps: () => undefined,
-      setIsVisible: () => undefined,
     },
   },
   functions: {
@@ -136,10 +133,6 @@ export const GameContextProvider = ({
 
   const [blockPanelProps, setBlockPanelProps] = useState(
     initialGameContext.components.blockPanel.props
-  );
-
-  const [isBlockPanelVisible, setIsBlockPanelVisible] = useState(
-    initialGameContext.components.blockPanel.isVisible
   );
 
   const getIntersectingTileId: GameContext["functions"]["getIntersectingTileId"] =
@@ -292,12 +285,11 @@ export const GameContextProvider = ({
       };
 
       setBlockPanelProps({
-        timer: null, // 5000,
-        children: "test",
+        isVisible: true,
+        timer: 5000,
+        textContent: "test",
         onTimerEnd,
       });
-
-      setIsBlockPanelVisible(true);
     }
 
     return true;
@@ -318,9 +310,7 @@ export const GameContextProvider = ({
       },
       blockPanel: {
         props: blockPanelProps,
-        isVisible: isBlockPanelVisible,
         setProps: setBlockPanelProps,
-        setIsVisible: setIsBlockPanelVisible,
       },
     },
     functions: {

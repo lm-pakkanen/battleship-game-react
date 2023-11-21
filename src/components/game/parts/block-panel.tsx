@@ -1,20 +1,34 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useGameContext } from "../../../hooks/useGameContex";
 import { initialGameContext } from "../../../context/game-context";
 import "./block-panel.css";
 
 export interface BlockPanel {
+  isVisible: boolean;
   timer: null | number;
-  children: React.ReactNode;
+  textContent: string;
   onTimerEnd: () => void;
 }
 
-export const BlockPanel = ({ timer, children, onTimerEnd }: BlockPanel) => {
+export const BlockPanel = ({
+  isVisible,
+  timer,
+  textContent,
+  onTimerEnd,
+}: BlockPanel) => {
   const { components } = useGameContext();
 
   const [countdownValue, setCountdownValue] = useState<null | number>(null);
 
-  // state for number
+  const classNames: string[] = useMemo(() => {
+    const nextClassNames: string[] = ["block-panel"];
+
+    if (isVisible) {
+      nextClassNames.push("block-panel-visible");
+    }
+
+    return nextClassNames;
+  }, [isVisible]);
 
   useEffect(() => {
     if (!timer) {
@@ -44,7 +58,6 @@ export const BlockPanel = ({ timer, children, onTimerEnd }: BlockPanel) => {
     countdownInterval = setInterval(updateCountdown, 1000);
 
     const hideTimeout = setTimeout(() => {
-      components.blockPanel.setIsVisible(false);
       components.blockPanel.setProps(
         initialGameContext.components.blockPanel.props
       );
@@ -57,13 +70,13 @@ export const BlockPanel = ({ timer, children, onTimerEnd }: BlockPanel) => {
   }, [timer]);
 
   return (
-    <div className="block-panel">
+    <div className={classNames.join(" ")}>
       <div className="block-panel-timer"></div>
       <div className="block-panel-content">
         {countdownValue && (
           <span className="text-header1 text-bold color-white">{`${countdownValue}s`}</span>
         )}
-        {children}
+        {textContent}
       </div>
     </div>
   );

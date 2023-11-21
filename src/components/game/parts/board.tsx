@@ -48,12 +48,11 @@ export const Board = () => {
 
       setTimeout(() => {
         components.blockPanel.setProps({
-          timer: 5000,
-          children: "test",
+          isVisible: true,
+          timer: null, //5000,
+          textContent: "Switching sides!",
           onTimerEnd,
         });
-
-        components.blockPanel.setIsVisible(true);
       }, 2000);
     }
   };
@@ -79,6 +78,7 @@ export const Board = () => {
 
   return (
     <article className="board">
+      <div className="board-overlay" />
       {rowNames.map((rowName) => (
         <div className="tile-row" key={`row-${rowName}`}>
           {columnNumbers.map((columnNumber) => (

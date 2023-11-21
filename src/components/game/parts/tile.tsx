@@ -6,6 +6,7 @@ import React from "react";
 import { getShipOrientation } from "../../../functions/get-ship-orientation";
 import { getLayoutScrollOffset } from "../../../functions/get-layout-scroll-offset";
 import "./tile.css";
+import { GuessMarker } from "./guess-marker";
 
 export interface Tile {
   coordinate: string;
@@ -42,19 +43,18 @@ export const Tile = React.forwardRef<HTMLDivElement, Tile>(
           (n) => n.coordinates[n.coordinates.length - 1] === coordinate
         );
 
-        if (!shipLocation) {
-          setChildren(null);
+        if (shipLocation) {
+          setChildren(
+            <Ship
+              type={shipLocation.shipType}
+              destroyed={false}
+              isTray={false}
+              initialOrientation={getShipOrientation(shipLocation)}
+            />
+          );
+
           return;
         }
-
-        setChildren(
-          <Ship
-            type={shipLocation.shipType}
-            destroyed={false}
-            isTray={false}
-            initialOrientation={getShipOrientation(shipLocation)}
-          />
-        );
       } else if (stage === "playing") {
         const isHit = oppositePlayerState.hitCells.includes(coordinate);
 
@@ -87,12 +87,8 @@ export const Tile = React.forwardRef<HTMLDivElement, Tile>(
           return;
         }
 
-        if (isHit && hasHitShip && !isShipDestroyed) {
-          setChildren("X");
-        } else if (isHit && !isShipDestroyed) {
-          setChildren("O");
-        } else {
-          setChildren(null);
+        if (isHit && !isShipDestroyed) {
+          setChildren(<GuessMarker variant={hasHitShip ? "hit" : "miss"} />);
         }
       }
     }, [
@@ -131,8 +127,9 @@ export const Tile = React.forwardRef<HTMLDivElement, Tile>(
     }
 
     return (
-      <div className="tile" onClick={handleClick} ref={ref}>
-        {children || coordinate}
+      <div className="tile aim" onClick={handleClick} ref={ref}>
+        <div className="tile-coordinate">{coordinate}</div>
+        {children}
       </div>
     );
   }
