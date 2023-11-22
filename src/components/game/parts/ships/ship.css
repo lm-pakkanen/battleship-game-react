@@ -1,6 +1,7 @@
 .ship {
   position: absolute;
   width: 60px;
+  z-index: 98;
 }
 
 .ship.tray-ship {

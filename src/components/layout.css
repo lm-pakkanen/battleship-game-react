@@ -13,7 +13,7 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
-  padding: 4rem 4rem 1rem 4rem;
+  padding: 1rem 4rem 1rem 1rem;
   background-image: url("img/bg.jpg");
   background-repeat: repeat;
   background-size: contain;

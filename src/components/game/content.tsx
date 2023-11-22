@@ -9,8 +9,11 @@ import { ResetGameButton } from "../controls/reset-game-button";
 import { ResetPlacementsButton } from "../controls/reset-placements-button";
 import { BlockPanel } from "./parts/block-panel";
 import { transformName } from "../../functions/transform-name";
+import { useNavigate } from "react-router-dom";
 
 export const GameContent = () => {
+  const navigate = useNavigate();
+
   const { getSettings } = useMemory();
   const { stage, turn, allShipsSunk, components, functions } = useGameContext();
 
@@ -20,7 +23,7 @@ export const GameContent = () => {
     const settings = getSettings();
 
     if (!settings) {
-      window.location.href = "/";
+      navigate("/");
       return;
     }
 

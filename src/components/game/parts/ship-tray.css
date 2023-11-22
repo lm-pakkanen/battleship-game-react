@@ -3,8 +3,8 @@
   grid-template-columns: repeat(5, 60px);
   align-items: end;
   margin: 1rem auto;
-  grid-column-gap: 3rem;
-  grid-row-gap: 3rem;
+  grid-column-gap: 2rem;
+  grid-row-gap: 1rem;
   box-sizing: border-box;
 }
 

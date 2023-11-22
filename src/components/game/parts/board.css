@@ -2,7 +2,7 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  margin: 5rem auto;
+  margin: 1rem auto;
   background-image: url("/img/board-bg.jpg");
   background-size: 100%;
   border: 1px solid hsla(0, 0%, 40%, 1);

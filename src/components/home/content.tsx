@@ -15,8 +15,10 @@ import { InputLabel } from "./parts/input-label";
 import { SaveSettingsButton } from "../controls/save-settings-button";
 import { FlexLabel } from "./parts/flex-label";
 import { ShipCountLabel } from "./parts/ship-count-label";
+import { useNavigate } from "react-router-dom";
 
 export const HomeContent = () => {
+  const navigate = useNavigate();
   const { getSettings, setSettings } = useMemory();
 
   const [player1Name, setPlayer1Name] = useState("");
@@ -151,12 +153,12 @@ export const HomeContent = () => {
 
     setSettings(settings);
 
-    window.location.href = "/game";
+    navigate("/game");
   };
 
   useEffect(() => {
     if (getSettings()) {
-      window.location.href = "/game";
+      navigate("/game");
     }
   }, []);
 

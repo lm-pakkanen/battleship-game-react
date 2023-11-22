@@ -86,7 +86,7 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
     let clientY = 0;
     let clientX = 0;
 
-    if (event instanceof TouchEvent) {
+    if (window.TouchEvent && event instanceof TouchEvent) {
       const touch = event.touches[0];
       clientY = touch.clientY;
       clientX = touch.clientX;
@@ -122,7 +122,7 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
     let clientY = 0;
     let clientX = 0;
 
-    if (event instanceof TouchEvent) {
+    if (window.TouchEvent && event instanceof TouchEvent) {
       const _touchLocation = { ...touchLocation };
       clientY = _touchLocation.clientY || 0;
       clientX = _touchLocation.clientX || 0;

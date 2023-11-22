@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useGameContext } from "../../../hooks/useGameContex";
 import { initialGameContext } from "../../../context/game-context";
 import "./block-panel.css";
+import { useNavigate } from "react-router-dom";
 
 export interface BlockPanel {
   isVisible: boolean;
@@ -24,6 +25,7 @@ export const BlockPanel = ({
   onPanelVisible,
   onTimerEnd,
 }: BlockPanel) => {
+  const navigate = useNavigate();
   const { components } = useGameContext();
 
   const [countdownValue, setCountdownValue] = useState<null | number>(null);
@@ -87,7 +89,7 @@ export const BlockPanel = ({
         }
 
         if (routeTo) {
-          window.location.href = routeTo;
+          navigate(routeTo);
           return;
         }
 
