@@ -15,13 +15,19 @@ export const GameContent = () => {
   const navigate = useNavigate();
 
   const { getSettings } = useMemory();
-  const { stage, turn, allShipsSunk, components, functions } = useGameContext();
+  const { stage, turn, allShipsSunk, player1, player2, components, functions } =
+    useGameContext();
 
   const [isReady, setIsReady] = useState(false);
 
-  useEffect(() => {
-    const settings = getSettings();
+  const playerState = turn === "player1" ? player1 : player2;
 
+  const headerTextContent =
+    stage === "placingShips" ? "Place your ships!" : "Sink the enemy!";
+
+  const settings = getSettings();
+
+  useEffect(() => {
     if (!settings) {
       navigate("/");
       return;
@@ -34,20 +40,17 @@ export const GameContent = () => {
     }
 
     setIsReady(true);
-  }, [stage]);
+  }, [stage, settings]);
 
   useEffect(() => {
     if (stage === "settings" || !turn) {
       return;
     }
 
-    const textContent =
-      stage === "placingShips" ? "Place your ships!" : "Sink the enemy!";
-
     components.header.setContent(
       <>
         <span className="text-header1 text-bold color-primary">
-          {textContent}
+          {headerTextContent}
         </span>
         <span className="text-header2 text-bold color-primary">
           {transformName(turn)}
@@ -66,16 +69,20 @@ export const GameContent = () => {
 
       {!allShipsSunk && stage !== "gameOver" && (
         <Layout
+          helpText={"test"}
           menuBarContent={
             <>
               <ResetGameButton isEndGameScreen={false} />
-              {stage === "placingShips" && <ResetPlacementsButton />}
+              {stage === "placingShips" &&
+                playerState.shipLocations.length > 0 && (
+                  <ResetPlacementsButton />
+                )}
             </>
           }
         >
           <div className="game-content">
             <Header>{components.header.content}</Header>
-            <Board />
+            <Board key={turn} />
             <ShipTray />
           </div>
         </Layout>

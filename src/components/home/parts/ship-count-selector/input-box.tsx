@@ -7,7 +7,7 @@ export interface InputBox {
 }
 
 export const InputBox = ({ num, isSelected, handleClick }: InputBox) => {
-  const classNames: string[] = ["ship-count-selector-input-box"];
+  const classNames = ["ship-count-selector-input-box"];
 
   if (isSelected) {
     classNames.push("input-box-selected");

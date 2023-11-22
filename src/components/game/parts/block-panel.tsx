@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useGameContext } from "../../../hooks/useGameContex";
 import { initialGameContext } from "../../../context/game-context";
-import "./block-panel.css";
 import { useNavigate } from "react-router-dom";
+import "./block-panel.css";
 
 export interface BlockPanel {
   isVisible: boolean;
@@ -30,35 +30,36 @@ export const BlockPanel = ({
 
   const [countdownValue, setCountdownValue] = useState<null | number>(null);
 
-  const classNames: string[] = useMemo(() => {
-    const nextClassNames: string[] = ["block-panel"];
+  const onShowTriggered = useRef(false);
 
-    if (isVisible) {
-      nextClassNames.push("block-panel-visible");
+  let loopCount = 0;
+  let countdownInterval: undefined | number = undefined;
+
+  const classNames = ["block-panel"];
+
+  if (isVisible) {
+    classNames.push("block-panel-visible");
+  }
+
+  const loopCountdown = useCallback(() => {
+    if (!timer) {
+      return;
     }
 
-    return nextClassNames;
-  }, [isVisible]);
+    const timeLeft = Math.floor((timer! - loopCount * 1000) / 1000);
+
+    if (timeLeft >= 0) {
+      setCountdownValue(timeLeft);
+      loopCount++;
+    } else if (countdownInterval) {
+      clearInterval(countdownInterval);
+    }
+  }, [timer, loopCount, countdownInterval]);
 
   useEffect(() => {
     if (!isVisible) {
       return;
     }
-
-    let loopCount = 0;
-
-    let countdownInterval: undefined | number = undefined;
-
-    const loopCountdown = () => {
-      const timeLeft = Math.floor((timer! - loopCount * 1000) / 1000);
-
-      if (timeLeft >= 0) {
-        setCountdownValue(timeLeft);
-        loopCount++;
-      } else if (countdownInterval) {
-        clearInterval(countdownInterval);
-      }
-    };
 
     if (timer) {
       loopCountdown();
@@ -76,13 +77,8 @@ export const BlockPanel = ({
 
     if (timer) {
       hideTimeout = setTimeout(() => {
-        if (onVisibleTimeout) {
-          clearTimeout(onVisibleTimeout);
-        }
-
-        if (countdownInterval) {
-          clearInterval(countdownInterval);
-        }
+        clearTimeout(onVisibleTimeout);
+        clearInterval(countdownInterval);
 
         if (onTimerEnd) {
           onTimerEnd();
@@ -101,22 +97,15 @@ export const BlockPanel = ({
     }
 
     return () => {
-      if (countdownInterval) {
-        clearInterval(countdownInterval);
-      }
-
-      if (onVisibleTimeout) {
-        clearTimeout(onVisibleTimeout);
-      }
-
-      if (hideTimeout) {
-        clearTimeout(hideTimeout);
-      }
+      clearInterval(countdownInterval);
+      clearTimeout(onVisibleTimeout);
+      clearTimeout(hideTimeout);
     };
   }, [isVisible, timer]);
 
   useEffect(() => {
-    if (isVisible && onShow) {
+    if (onShow && !onShowTriggered.current && isVisible) {
+      onShowTriggered.current = true;
       onShow();
     }
   }, [isVisible, onShow]);

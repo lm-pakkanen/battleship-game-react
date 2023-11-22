@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { useGameContext } from "../../../hooks/useGameContex";
 import { Tile } from "./tile";
 import { playSound } from "../../../functions/play-sound";
@@ -11,10 +11,30 @@ export const Board = () => {
   const { stage, turn, settings, player1, player2, functions, components } =
     useGameContext();
 
-  const [rowNames, setRowNames] = useState<string[]>([]);
-  const [columnNumbers, setColumnNumbers] = useState<number[]>([]);
+  const [hasGuessesLeft, setHasGuessesLeft] = useState(true);
 
-  const [hasGuessesLeft, setHasGuessesLeft] = useState(false);
+  const {
+    rowNames,
+    columnNumbers,
+  }: {
+    rowNames: string[];
+    columnNumbers: number[];
+  } = useMemo(() => {
+    const nextRowNames = [];
+
+    for (let i = 0; i < settings.boardSize; i++) {
+      nextRowNames.push(ROW_NAME_LETTERS[i]);
+    }
+
+    const nextColumnNumbers = [...Array(settings.boardSize).keys()].map(
+      (n) => n + 1
+    );
+
+    return {
+      rowNames: nextRowNames,
+      columnNumbers: nextColumnNumbers,
+    };
+  }, [settings.boardSize, ROW_NAME_LETTERS]);
 
   const handleClick = (coordinate: string) => {
     if (stage !== "playing" || !turn || !hasGuessesLeft) {
@@ -68,25 +88,6 @@ export const Board = () => {
       }, 2000);
     }
   };
-
-  useEffect(() => {
-    const nextRowNames: string[] = [];
-
-    for (let i = 0; i < settings.boardSize; i++) {
-      nextRowNames.push(ROW_NAME_LETTERS[i]);
-    }
-
-    const nextColumnNumbers = [...Array(settings.boardSize).keys()].map(
-      (n) => n + 1
-    );
-
-    setRowNames(nextRowNames);
-    setColumnNumbers(nextColumnNumbers);
-  }, [settings.boardSize]);
-
-  useEffect(() => {
-    setHasGuessesLeft(true);
-  }, [turn]);
 
   return (
     <article className="board">

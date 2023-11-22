@@ -379,12 +379,9 @@ export const GameContextProvider = ({
     });
   };
 
-  useEffect(() => {
-    if ((stage === "gameOver" && !blockPanelProps.isVisible) || allShipsSunk) {
-      endGame();
-      return;
-    }
-  }, [stage, allShipsSunk]);
+  if ((stage === "gameOver" && !blockPanelProps.isVisible) || allShipsSunk) {
+    endGame();
+  }
 
   const providerValue: GameContext = {
     stage,

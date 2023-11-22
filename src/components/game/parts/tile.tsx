@@ -1,5 +1,5 @@
 import { useGameContext } from "../../../hooks/useGameContex";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Ship } from "./ships/ship";
 import { isLastShipCell } from "../../../functions/is-first-ship-cell";
 import React from "react";
@@ -15,9 +15,7 @@ export interface Tile {
 
 export const Tile = React.forwardRef<HTMLDivElement, Tile>(
   ({ coordinate, handleClick: _handleClick }: Tile, externalRef) => {
-    const { turn, stage, player1, player2, setTileBounds } = useGameContext();
-
-    const [children, setChildren] = useState<React.ReactNode>(null);
+    const { stage, player1, player2, turn, setTileBounds } = useGameContext();
 
     const internalRef = useRef<HTMLDivElement>(null);
 
@@ -30,23 +28,20 @@ export const Tile = React.forwardRef<HTMLDivElement, Tile>(
       _handleClick(coordinate);
     };
 
-    useEffect(() => {
+    const children = useMemo(() => {
       if (stage === "settings" || !turn) {
-        return;
+        return null;
       }
 
-      setChildren(null);
-
-      const playerState = turn === "player1" ? player1 : player2;
-      const oppositePlayerState = turn === "player1" ? player2 : player1;
-
       if (stage === "placingShips") {
+        const playerState = turn === "player1" ? player1 : player2;
+
         const shipLocation = playerState.shipLocations.find(
           (n) => n.coordinates[n.coordinates.length - 1] === coordinate
         );
 
         if (shipLocation) {
-          setChildren(
+          return (
             <Ship
               type={shipLocation.shipType}
               destroyed={false}
@@ -54,10 +49,13 @@ export const Tile = React.forwardRef<HTMLDivElement, Tile>(
               initialOrientation={getShipOrientation(shipLocation)}
             />
           );
-
-          return;
         }
-      } else if (stage === "playing") {
+
+        return null;
+      }
+
+      if (stage === "playing") {
+        const oppositePlayerState = turn === "player1" ? player2 : player1;
         const isHit = oppositePlayerState.hitCells.includes(coordinate);
 
         const tileShip = oppositePlayerState.shipLocations.find((n) =>
@@ -77,8 +75,7 @@ export const Tile = React.forwardRef<HTMLDivElement, Tile>(
           isShipDestroyed &&
           isLastShipCell(coordinate, tileShip)
         ) {
-          // Ship + hit marker
-          setChildren(
+          return (
             <>
               <Ship
                 type={tileShip.shipType}
@@ -89,23 +86,16 @@ export const Tile = React.forwardRef<HTMLDivElement, Tile>(
               <GuessMarker variant={"hit"} />
             </>
           );
-
-          return;
         }
 
         if (isHit) {
           // Hit marker only
-          setChildren(<GuessMarker variant={hasHitShip ? "hit" : "miss"} />);
+          return <GuessMarker variant={hasHitShip ? "hit" : "miss"} />;
         }
       }
-    }, [
-      turn,
-      stage,
-      player1.shipLocations,
-      player1.hitCells,
-      player2.shipLocations,
-      player2.hitCells,
-    ]);
+
+      return null;
+    }, [stage, turn, player1, player2]);
 
     useEffect(() => {
       if (!ref.current) {

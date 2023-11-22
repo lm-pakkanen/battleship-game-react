@@ -1,17 +1,12 @@
 import type { Ship } from "./ship";
-import { useMemo } from "react";
 import "./carrier.css";
 
 export const Carrier = ({ destroyed }: Pick<Ship, "destroyed">) => {
-  const classNames: string[] = useMemo(() => {
-    const nextClassNames = ["carrier-wrapper"];
+  const classNames = ["carrier-wrapper"];
 
-    if (destroyed) {
-      nextClassNames.push("carrier-destroyed");
-    }
-
-    return nextClassNames;
-  }, [destroyed]);
+  if (destroyed) {
+    classNames.push("carrier-destroyed");
+  }
 
   return (
     <div className={classNames.join(" ")}>

@@ -1,17 +1,12 @@
-import { useMemo } from "react";
 import { Ship } from "./ship";
 import "./destroyer.css";
 
 export const Destroyer = ({ destroyed }: Pick<Ship, "destroyed">) => {
-  const classNames: string[] = useMemo(() => {
-    const nextClassNames = ["destroyer-wrapper"];
+  const classNames = ["destroyer-wrapper"];
 
-    if (destroyed) {
-      nextClassNames.push("destroyer-destroyed");
-    }
-
-    return nextClassNames;
-  }, [destroyed]);
+  if (destroyed) {
+    classNames.push("destroyer-destroyed");
+  }
 
   return (
     <div className={classNames.join(" ")}>

@@ -4,12 +4,13 @@ import "./layout.css";
 export interface Layout {
   children: React.ReactNode;
   menuBarContent?: React.ReactNode;
+  helpText?: string;
 }
 
-export const Layout = ({ children, menuBarContent }: Layout) => {
+export const Layout = ({ children, menuBarContent, helpText }: Layout) => {
   return (
     <div className="layout">
-      <MenuBar>{menuBarContent}</MenuBar>
+      <MenuBar helpText={helpText}>{menuBarContent}</MenuBar>
       <div className="layout-content" id="layout-content">
         {children}
       </div>

@@ -6,7 +6,7 @@ export interface ErrorMessage {
 }
 
 export const ErrorMessage = ({ msg, isInputError }: ErrorMessage) => {
-  const classNames: string[] = ["error-message"];
+  const classNames = ["error-message"];
 
   if (isInputError) {
     classNames.push("input-error-message");
