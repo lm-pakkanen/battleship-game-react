@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  KeyboardEventHandler,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { ShipOrientation } from "../../../../enums/ShipOrientation";
 import { useGameContext } from "../../../../hooks/useGameContex";
 import { ShipType } from "../../../../enums/ShipType";
@@ -12,6 +19,11 @@ import { Destroyer } from "./destroyer";
 import { getLayoutScrollOffset } from "../../../../functions/get-layout-scroll-offset";
 import "./ship.css";
 
+interface ClientLocation {
+  clientY: number;
+  clientX: number;
+}
+
 export interface ShipLocation {
   bottom: number;
   left: number;
@@ -22,9 +34,18 @@ export interface Ship {
   destroyed: boolean;
   isTray: boolean;
   initialOrientation: ShipOrientation;
+  tabIndex: number;
+  count?: number;
 }
 
-export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
+export const Ship = ({
+  type,
+  destroyed,
+  isTray,
+  initialOrientation,
+  tabIndex,
+  count,
+}: Ship) => {
   const { functions, tileBounds } = useGameContext();
 
   const [orientation, setOrientation] =
@@ -36,13 +57,17 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
     left: 0,
   });
 
-  const [touchLocation, setTouchLocation] = useState<null | {
-    clientY: number;
-    clientX: number;
-  }>(null);
+  const [clientLocation, setClientLocation] = useState<null | ClientLocation>(
+    null
+  );
 
   const dragEmitter = useRef(new EventEmitter());
   const shipRef = useRef<HTMLDivElement>(null);
+
+  const isDraggable = useMemo(
+    () => !(isTray && count !== undefined),
+    [isTray, count]
+  );
 
   const children = useMemo(() => {
     switch (type) {
@@ -79,6 +104,10 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
       nextClassNames.push("tray-ship");
     }
 
+    if (isTray && count !== undefined) {
+      nextClassNames.push("non-draggable");
+    }
+
     if (isDragging) {
       nextClassNames.push("dragging");
     }
@@ -90,7 +119,135 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
     }
 
     return nextClassNames;
-  }, [isTray, isDragging, type, orientation]);
+  }, [isTray, isDragging, type, orientation, count]);
+
+  const handleKeydown: KeyboardEventHandler = useCallback(
+    (event) => {
+      if (!shipRef.current) {
+        return;
+      }
+
+      if (["Escape", "Enter", "Tab"].includes(event.key)) {
+        dragEmitter.current.emit("dragend");
+        return;
+      }
+
+      setIsDragging(true);
+
+      if (event.key === "r") {
+        handleRotate(event as unknown as KeyboardEvent);
+        return;
+      }
+
+      event.preventDefault();
+      const moveUnit = 70;
+
+      const shipRect = shipRef.current.getBoundingClientRect();
+
+      const getNextClientState = (
+        oldState: null | ClientLocation
+      ): ClientLocation => {
+        if (oldState) {
+          return oldState;
+        }
+
+        const tileSize = 70;
+
+        const shipTop = shipRect.top;
+        const shipHeight = shipRect.height;
+
+        const shipLeft = shipRect.left;
+        const shipWidth = shipRect.width;
+
+        const dragCenterY = shipTop + shipHeight - tileSize / 2;
+        const dragCenterX = shipLeft + shipWidth - tileSize / 2;
+
+        return {
+          clientY: dragCenterY,
+          clientX: dragCenterX,
+        };
+      };
+
+      switch (event.key) {
+        case "ArrowUp": {
+          setLocation((oldState) => ({
+            ...oldState,
+            bottom: oldState.bottom + moveUnit,
+          }));
+
+          setClientLocation((oldState) => {
+            const nextState = getNextClientState(oldState);
+
+            return {
+              ...nextState,
+              clientY: nextState.clientY - moveUnit,
+            };
+          });
+
+          break;
+        }
+
+        case "ArrowRight": {
+          setLocation((oldState) => ({
+            ...oldState,
+            left: oldState.left + moveUnit,
+          }));
+
+          setClientLocation((oldState) => {
+            const nextState = getNextClientState(oldState);
+
+            return {
+              ...nextState,
+              clientX: nextState.clientX + moveUnit,
+            };
+          });
+
+          break;
+        }
+
+        case "ArrowDown": {
+          setLocation((oldState) => ({
+            ...oldState,
+            bottom: oldState.bottom - moveUnit,
+          }));
+
+          setClientLocation((oldState) => {
+            const nextState = getNextClientState(oldState);
+
+            return {
+              ...nextState,
+              clientY: nextState.clientY + moveUnit,
+            };
+          });
+
+          break;
+        }
+
+        case "ArrowLeft": {
+          setLocation((oldState) => ({
+            ...oldState,
+            left: oldState.left - moveUnit,
+          }));
+
+          setClientLocation((oldState) => {
+            const nextState = getNextClientState(oldState);
+
+            return {
+              ...nextState,
+              clientX: nextState.clientX - moveUnit,
+            };
+          });
+
+          break;
+        }
+
+        default: {
+          return;
+        }
+      }
+    },
+    [shipRef.current, dragEmitter.current]
+  );
 
   const handleDrag = useCallback(
     (event: MouseEvent | TouchEvent) => {
@@ -113,11 +270,12 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
         const touch = event.touches[0];
         clientY = touch.clientY;
         clientX = touch.clientX;
-        setTouchLocation({ clientY, clientX });
       } else if (event instanceof MouseEvent) {
         clientY = event.clientY;
         clientX = event.clientX;
       }
+
+      setClientLocation({ clientY, clientX });
 
       setLocation({
         bottom: -(clientY + verticalYCorrection),
@@ -139,56 +297,48 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
     );
   }, []);
 
-  const handleDragEnd = useCallback(
-    (event: MouseEvent | TouchEvent) => {
-      setIsDragging(false);
+  const handleDragEnd = useCallback(() => {
+    if (!clientLocation) {
+      return;
+    }
 
-      const { scrollOffsetTop, scrollOffsetLeft } = getLayoutScrollOffset();
+    setIsDragging(false);
 
-      let clientY = 0;
-      let clientX = 0;
+    const { scrollOffsetTop, scrollOffsetLeft } = getLayoutScrollOffset();
+    const { clientY, clientX } = clientLocation;
 
-      if (window.TouchEvent && event instanceof TouchEvent) {
-        const _touchLocation = { ...touchLocation };
-        clientY = _touchLocation.clientY || 0;
-        clientX = _touchLocation.clientX || 0;
-      } else if (event instanceof MouseEvent) {
-        clientY = event.clientY;
-        clientX = event.clientX;
-      }
+    const location: ShipLocation = {
+      bottom: clientY + scrollOffsetTop,
+      left: clientX + scrollOffsetLeft,
+    };
 
-      const location: ShipLocation = {
-        bottom: clientY + scrollOffsetTop,
-        left: clientX + scrollOffsetLeft,
-      };
+    const intersectingTile = functions.getIntersectingTileId(location);
 
-      const intersectingTile = functions.getIntersectingTileId(location);
+    try {
+      const success = functions.placeShip(intersectingTile, type, orientation);
 
-      try {
-        const success = functions.placeShip(
-          intersectingTile,
-          type,
-          orientation
-        );
+      console.log(clientY, clientX);
 
-        if (!success) {
-          setLocation({ bottom: 0, left: 0 });
-          setOrientation(ShipOrientation.BOTTOM_TO_TOP);
-        }
-      } catch (err) {
+      if (!success) {
         setLocation({ bottom: 0, left: 0 });
+        setClientLocation(null);
         setOrientation(ShipOrientation.BOTTOM_TO_TOP);
-        addAlert((err as Error).message);
       }
-    },
-    [
-      type,
-      orientation,
-      touchLocation,
-      functions.getIntersectingTileId,
-      functions.placeShip,
-    ]
-  );
+    } catch (err) {
+      setLocation({ bottom: 0, left: 0 });
+      setClientLocation(null);
+      setOrientation(ShipOrientation.BOTTOM_TO_TOP);
+      addAlert((err as Error).message);
+    }
+  }, [
+    type,
+    orientation,
+    clientLocation,
+    functions.getIntersectingTileId,
+    functions.placeShip,
+  ]);
+
+  console.log(orientation);
 
   const handleDragStartEvent = useCallback((event: MouseEvent | TouchEvent) => {
     event.preventDefault();
@@ -230,7 +380,7 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
 
   // Create drag handlers when ship is initially clicked (drag start)
   useEffect(() => {
-    if (!isTray || !shipRef.current) {
+    if (!isDraggable || !shipRef.current) {
       return;
     }
 
@@ -243,11 +393,11 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
         shipRef.current.removeEventListener("mousedown", handleDragStartEvent);
       }
     };
-  }, [shipRef.current, isTray, handleDragStartEvent]);
+  }, [shipRef.current, isDraggable, handleDragStartEvent]);
 
   // React to dragstart event
   useEffect(() => {
-    if (!isTray || !shipRef.current) {
+    if (!isDraggable || !shipRef.current) {
       return;
     }
 
@@ -255,21 +405,12 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
 
     return () => {
       dragEmitter.current.off("dragstart", handleDragStart);
-      document.removeEventListener("touchmove", handleDrag);
-      document.removeEventListener("mousemove", handleDrag);
-
-      document.removeEventListener("touchstart", handleRotate);
-      document.removeEventListener("keydown", handleRotate);
-
-      document.removeEventListener("touchend", handleDragEndEvent);
-      document.removeEventListener("mouseup", handleDragEndEvent);
-      document.addEventListener("touchcancel", handleDragEndEvent);
     };
-  }, [isTray, shipRef.current, handleDragStart]);
+  }, [isDraggable, shipRef.current, handleDragStart]);
 
   // React to dragend event
   useEffect(() => {
-    if (!isTray || !tileBounds) {
+    if (!isDraggable || !tileBounds) {
       return;
     }
 
@@ -278,17 +419,26 @@ export const Ship = ({ type, destroyed, isTray, initialOrientation }: Ship) => {
     return () => {
       dragEmitter.current.off("dragend", handleDragEnd);
     };
-  }, [isTray, tileBounds, handleDragEnd]);
+  }, [isDraggable, tileBounds, handleDragEnd]);
 
   return (
-    <div
-      className={classNames.join(" ")}
-      ref={shipRef}
-      style={{
-        ...(location ?? { top: 0, right: 0 }),
-      }}
-    >
-      {children}
-    </div>
+    <>
+      <div
+        className={classNames.join(" ")}
+        style={{
+          ...(location ?? { top: 0, right: 0 }),
+        }}
+        tabIndex={tabIndex}
+        ref={shipRef}
+        onKeyDown={handleKeydown}
+      >
+        {children}
+      </div>
+      {count !== undefined && (
+        <div className={`ship-count ${count === 0 ? "ship-count-zero" : ""}`}>
+          {count}
+        </div>
+      )}
+    </>
   );
 };

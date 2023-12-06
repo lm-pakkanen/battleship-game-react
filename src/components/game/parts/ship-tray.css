@@ -1,16 +1,15 @@
 .ship-tray {
   display: grid;
-  grid-template-columns: repeat(5, 60px);
+  grid-template-columns: repeat(5, 70px);
   align-items: end;
-  margin: 1rem auto;
-  grid-column-gap: 2rem;
+  margin: 62px auto;
   grid-row-gap: 1rem;
   box-sizing: border-box;
 }
 
 .ship-tray-section {
   position: relative;
-  width: 60px;
+  width: 70px;
 }
 
 .ship-tray-section.tray-carrier {
@@ -33,6 +32,6 @@
   height: 130px;
 }
 
-.ship-tray-section-count {
-  margin-top: 5rem;
+.ship-tray-section.non-draggable {
+  margin-bottom: 4.5rem;
 }

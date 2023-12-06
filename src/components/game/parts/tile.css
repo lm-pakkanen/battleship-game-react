@@ -3,10 +3,10 @@
   height: 70px;
   width: 70px;
   color: white;
-  box-sizing: border-box;
 }
 
 .tile + .tile {
+  width: 69px;
   border-left: 1px solid hsla(0, 0%, 70%, 1);
 }
 

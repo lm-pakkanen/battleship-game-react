@@ -92,17 +92,25 @@ export const Board = () => {
   return (
     <article className="board">
       <div className="board-overlay" />
-      {rowNames.map((rowName) => (
-        <div className="tile-row" key={`row-${rowName}`}>
-          {columnNumbers.map((columnNumber) => (
-            <Tile
-              key={`${rowName}${columnNumber}`}
-              coordinate={`${rowName}${columnNumber}`}
-              handleClick={handleClick}
-            />
-          ))}
-        </div>
-      ))}
+      {rowNames.map((rowName, rowIndex) => {
+        return (
+          <div className="tile-row" key={`row-${rowName}`}>
+            {columnNumbers.map((columnNumber, columnIndex) => {
+              const tabIndex =
+                rowIndex * columnNumbers.length + columnIndex + 1;
+
+              return (
+                <Tile
+                  key={`${rowName}${columnNumber}`}
+                  coordinate={`${rowName}${columnNumber}`}
+                  tabIndex={tabIndex}
+                  handleClick={handleClick}
+                />
+              );
+            })}
+          </div>
+        );
+      })}
     </article>
   );
 };

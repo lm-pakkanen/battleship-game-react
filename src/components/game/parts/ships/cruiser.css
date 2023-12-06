@@ -7,7 +7,7 @@
   position: absolute;
   top: -8px;
   bottom: 0;
-  left: -70px;
+  left: -65px;
 }
 
 /** Rotate & apply location corrections to keep ship's last cell on top of mouse */

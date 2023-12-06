@@ -10,11 +10,12 @@ import "./tile.css";
 
 export interface Tile {
   coordinate: string;
+  tabIndex: number;
   handleClick: (coordinate: string) => void;
 }
 
 export const Tile = React.forwardRef<HTMLDivElement, Tile>(
-  ({ coordinate, handleClick: _handleClick }: Tile, externalRef) => {
+  ({ coordinate, tabIndex, handleClick: _handleClick }: Tile, externalRef) => {
     const { stage, player1, player2, turn, setTileBounds } = useGameContext();
 
     const internalRef = useRef<HTMLDivElement>(null);
@@ -47,6 +48,7 @@ export const Tile = React.forwardRef<HTMLDivElement, Tile>(
               destroyed={false}
               isTray={false}
               initialOrientation={getShipOrientation(shipLocation)}
+              tabIndex={-1}
             />
           );
         }
@@ -82,6 +84,7 @@ export const Tile = React.forwardRef<HTMLDivElement, Tile>(
                 destroyed={true}
                 isTray={false}
                 initialOrientation={getShipOrientation(tileShip)}
+                tabIndex={-1}
               />
               <GuessMarker variant={"hit"} />
             </>
@@ -124,7 +127,12 @@ export const Tile = React.forwardRef<HTMLDivElement, Tile>(
     }
 
     return (
-      <div className="tile aim" onClick={handleClick} ref={ref}>
+      <div
+        className="tile aim"
+        onClick={handleClick}
+        ref={ref}
+        tabIndex={tabIndex}
+      >
         <div className="tile-coordinate">{coordinate}</div>
         {children}
       </div>

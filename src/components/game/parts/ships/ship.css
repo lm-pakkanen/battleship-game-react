@@ -1,10 +1,10 @@
 .ship {
   position: absolute;
-  width: 60px;
+  width: 70px;
   z-index: 98;
 }
 
-.ship.tray-ship {
+.ship.tray-ship:not(.non-draggable) {
   cursor: grab;
 }
 
@@ -19,5 +19,20 @@
 
 /** Apply location corrections to keep ship centered in board */
 .ship-vertical:not(.tray-ship, .dragging) {
-  transform: translateX(3px) translateY(-7px);
+  transform: translateY(-7px);
+}
+
+.ship-count {
+  position: absolute;
+  bottom: -3.5rem;
+  left: 50%;
+  color: white;
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: center;
+  transform: translateX(-50%);
+}
+
+.ship-count-zero {
+  color: hsla(0, 80%, 42%, 1);
 }
