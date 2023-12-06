@@ -8,6 +8,7 @@ export interface BlockPanel {
   isVisible: boolean;
   timer: null | number;
   children: React.ReactNode;
+  id: string;
   routeTo?: string;
   onShow?: () => void;
   onPanelVisible?: () => void;
@@ -93,7 +94,7 @@ export const BlockPanel = ({
         components.blockPanel.setProps(
           initialGameContext.components.blockPanel.props
         );
-      }, timer);
+      }, timer - 1000);
     }
 
     return () => {
@@ -114,9 +115,9 @@ export const BlockPanel = ({
     <div className={classNames.join(" ")}>
       <div className="block-panel-timer"></div>
       <div className="block-panel-content">
-        {countdownValue && (
+        {countdownValue ? (
           <span className="text-header1 text-bold color-white">{`${countdownValue}s`}</span>
-        )}
+        ) : null}
         {children}
       </div>
     </div>

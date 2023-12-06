@@ -1,5 +1,5 @@
 import { useGameContext } from "../../../hooks/useGameContex";
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Ship } from "./ships/ship";
 import { isLastShipCell } from "../../../functions/is-first-ship-cell";
 import React from "react";
@@ -25,9 +25,19 @@ export const Tile = React.forwardRef<HTMLDivElement, Tile>(
         ? externalRef
         : internalRef;
 
-    const handleClick: React.MouseEventHandler<HTMLDivElement> = () => {
-      _handleClick(coordinate);
-    };
+    const handleKeydown: React.KeyboardEventHandler = useCallback(
+      (event) => {
+        if (event.key === "Enter") {
+          _handleClick(coordinate);
+        }
+      },
+      [coordinate, _handleClick]
+    );
+
+    const handleClick: React.MouseEventHandler<HTMLDivElement> = useCallback(
+      () => _handleClick(coordinate),
+      [coordinate, _handleClick]
+    );
 
     const children = useMemo(() => {
       if (stage === "settings" || !turn) {
@@ -130,6 +140,7 @@ export const Tile = React.forwardRef<HTMLDivElement, Tile>(
       <div
         className="tile aim"
         onClick={handleClick}
+        onKeyDown={handleKeydown}
         ref={ref}
         tabIndex={tabIndex}
       >

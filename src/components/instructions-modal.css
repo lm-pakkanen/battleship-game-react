@@ -1,0 +1,17 @@
+.instructions-modal {
+  max-width: 40rem;
+  color: hsla(0, 0%, 100%, 0.85);
+  background: hsla(0, 0%, 10%, 1);
+  border: 1px solid hsla(0, 0%, 30%, 1);
+  border-radius: 0.25rem;
+}
+
+.instructions-modal::backdrop {
+  background: hsla(0, 0%, 0%, 0.5);
+}
+
+.instructions-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem 0;
+}

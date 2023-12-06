@@ -73,6 +73,7 @@ export const Board = () => {
 
       setTimeout(() => {
         components.blockPanel.setProps({
+          id: "switching-sides-block-panel",
           isVisible: true,
           timer: 5000,
           children: "Switching sides...",

@@ -94,6 +94,7 @@ export const initialGameContext: GameContext = {
     },
     blockPanel: {
       props: {
+        id: "initial",
         isVisible: false,
         timer: null,
         children: null,
@@ -308,6 +309,7 @@ export const GameContextProvider = ({
           : `Time for ${settings.player2Name} to sink your ships!`;
 
       setBlockPanelProps({
+        id: "switching-sides-block-panel-2",
         isVisible: true,
         timer: 5000,
         children: (
@@ -365,10 +367,13 @@ export const GameContextProvider = ({
       turn === "player1" ? settings.player1Name : settings.player2Name;
 
     setBlockPanelProps({
+      id: "game-over-block-panel",
       isVisible: true,
       children: (
         <>
-          <span className="block-panel-text">Winner: {playerName}!</span>
+          <span className="block-panel-text game-win-text">
+            Winner: {playerName}!
+          </span>
           <ResetGameButton isEndGameScreen={true} />
         </>
       ),
@@ -379,9 +384,11 @@ export const GameContextProvider = ({
     });
   };
 
-  if ((stage === "gameOver" && !blockPanelProps.isVisible) || allShipsSunk) {
-    endGame();
-  }
+  useEffect(() => {
+    if ((stage === "gameOver" && !blockPanelProps.isVisible) || allShipsSunk) {
+      endGame();
+    }
+  }, [stage, blockPanelProps.isVisible, allShipsSunk]);
 
   const providerValue: GameContext = {
     stage,

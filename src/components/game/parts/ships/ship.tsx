@@ -1,11 +1,4 @@
-import {
-  KeyboardEventHandler,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ShipOrientation } from "../../../../enums/ShipOrientation";
 import { useGameContext } from "../../../../hooks/useGameContex";
 import { ShipType } from "../../../../enums/ShipType";
@@ -121,9 +114,9 @@ export const Ship = ({
     return nextClassNames;
   }, [isTray, isDragging, type, orientation, count]);
 
-  const handleKeydown: KeyboardEventHandler = useCallback(
+  const handleKeydown: React.KeyboardEventHandler = useCallback(
     (event) => {
-      if (!shipRef.current) {
+      if (!shipRef.current || !isDraggable) {
         return;
       }
 
@@ -246,7 +239,7 @@ export const Ship = ({
         }
       }
     },
-    [shipRef.current, dragEmitter.current]
+    [shipRef.current, dragEmitter.current, isDraggable]
   );
 
   const handleDrag = useCallback(
@@ -317,8 +310,6 @@ export const Ship = ({
     try {
       const success = functions.placeShip(intersectingTile, type, orientation);
 
-      console.log(clientY, clientX);
-
       if (!success) {
         setLocation({ bottom: 0, left: 0 });
         setClientLocation(null);
@@ -337,8 +328,6 @@ export const Ship = ({
     functions.getIntersectingTileId,
     functions.placeShip,
   ]);
-
-  console.log(orientation);
 
   const handleDragStartEvent = useCallback((event: MouseEvent | TouchEvent) => {
     event.preventDefault();
@@ -428,7 +417,7 @@ export const Ship = ({
         style={{
           ...(location ?? { top: 0, right: 0 }),
         }}
-        tabIndex={tabIndex}
+        tabIndex={isDraggable ? tabIndex : -1}
         ref={shipRef}
         onKeyDown={handleKeydown}
       >

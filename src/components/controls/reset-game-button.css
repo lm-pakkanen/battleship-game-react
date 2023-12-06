@@ -1,5 +1,8 @@
 .reset-game-button {
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1.5rem;
   color: white;
-  background: hsla(0, 60%, 55%, 1);
+}
+
+.reset-game-button.game-over-reset-button {
+  background: hsla(125, 55%, 35%, 1);
 }

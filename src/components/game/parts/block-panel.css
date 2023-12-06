@@ -24,9 +24,14 @@
   color: white;
 }
 
-:global(.block-panel-content .block-panel-text) {
+.block-panel-content .block-panel-text {
   font-size: 2rem;
   font-weight: bold;
+}
+
+.block-panel-text.game-win-text {
+  font-size: 4rem;
+  margin-bottom: 2rem;
 }
 
 .block-panel-content * {

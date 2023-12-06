@@ -65,7 +65,10 @@ export const GameContent = () => {
 
   return (
     <>
-      <BlockPanel {...components.blockPanel.props} />
+      <BlockPanel
+        key={components.blockPanel.props.id}
+        {...components.blockPanel.props}
+      />
 
       {!allShipsSunk && stage !== "gameOver" && (
         <Layout

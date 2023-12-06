@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from "react";
-import ReactDOM from "react-dom";
-import { Dialog } from "./modal";
+import React, { useState } from "react";
+import { InstructionsModal } from "./instructions-modal";
+import { InstructionsModalButton } from "./controls/instructions-modal-button";
 import "./menu-bar.css";
 
 export interface MenuBar {
@@ -11,25 +11,16 @@ export interface MenuBar {
 export const MenuBar = ({ children, helpText }: MenuBar) => {
   const [isDialogVisible, setIsDialogVisible] = useState(false);
 
-  const DialogComponent = useMemo(() => {
-    return helpText
-      ? ReactDOM.createPortal(
-          <Dialog
-            isVisible={isDialogVisible}
-            setIsVisible={setIsDialogVisible}
-          />,
-          document.body
-        )
-      : null;
-  }, [helpText, isDialogVisible]);
-
   return (
     <>
-      {DialogComponent}
+      <InstructionsModal
+        isVisible={isDialogVisible}
+        setIsVisible={setIsDialogVisible}
+      />
       <div className="menu-bar">
         {children}
         {helpText && (
-          <button onClick={() => setIsDialogVisible(true)}>?</button>
+          <InstructionsModalButton setIsDialogVisible={setIsDialogVisible} />
         )}
       </div>
     </>
