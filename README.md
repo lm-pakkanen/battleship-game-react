@@ -15,7 +15,3 @@ The following bugs etc. are known but not in the scope of this project for now.
 - Ship placement breaks when window resizes
 - Game board size is not responsive, UI does not work below ~ 500px screen width
 - Sounds sometimes lag a little
-
-## Repository
-
-https://github.com/lm-pakkanen/battleship-game-react
